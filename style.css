@@ -1,0 +1,97 @@
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+header {
+    text-align: center;
+    padding: 3rem 1rem;
+    background-color: #1a1a1a;
+    color: #fff;
+}
+
+header h1 {
+    margin: 0 0 1rem 0;
+    font-size: 2.5rem;
+}
+
+main {
+    max-width: 1200px;
+    margin: 3rem auto;
+    padding: 0 1rem;
+}
+
+/* 2カラム（画面幅に応じて自動調整）のグリッド */
+.entries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 2.5rem;
+}
+
+.entry-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e1e4e6;
+}
+
+.entry-title {
+    font-size: 1.1rem;
+    padding: 1rem;
+    margin: 0;
+    background: #f1f3f5;
+    border-bottom: 1px solid #e1e4e6;
+}
+
+.iframe-container {
+    width: 100%;
+    height: 450px; /* アンケートをある程度操作できる高さ */
+    background: #fff;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.vote-area {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fdfdfd;
+    border-top: 1px solid #e1e4e6;
+}
+
+.vote-button {
+    background-color: #de1c22;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.8rem;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.vote-button:hover {
+    background-color: #ff3838;
+}
+
+.vote-button:active {
+    transform: scale(0.98);
+}
+
+.vote-count {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #555;
+}
