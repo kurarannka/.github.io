@@ -5,10 +5,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function loadVoteCounts() {
     // 【のちに実装】Supabase等のAPIを叩いてデータを取得する
-    // ここではテスト用のダミーデータ
+    // テスト用の4件分のダミーデータ
     const mockData = {
         "entry01": 5,
-        "entry02": 18
+        "entry02": 18,
+        "entry03": 2,
+        "entry04": 11
     };
 
     // 画面に票数を反映
@@ -25,7 +27,7 @@ function handleVote(entryId) {
     // 【のちに実装】Supabase等のテーブルに「+1」するか、インサートする処理
     alert(`エントリー [${entryId}] にクソ投票しました！`);
     
-    // ひとまずフロント側だけでカウントを1増やす擬似演出
+    // フロント側だけでカウントを1増やす擬似演出
     const countElement = document.getElementById(`count-${entryId}`);
     if (countElement) {
         const currentCount = parseInt(countElement.textContent);
