@@ -51,14 +51,53 @@ main {
 
 .iframe-container {
     width: 100%;
-    height: 450px; /* アンケートをある程度操作できる高さ */
+    height: 350px; /* サムネイルとしての高さ（お好みで調整してください） */
     background: #fff;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid #e1e4e6;
 }
 
-iframe {
+.thumbnail-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    text-decoration: none;
+}
+
+/* iframeの操作を無効化し、サムネイル化する魔法のコード */
+.thumbnail-link iframe {
     width: 100%;
     height: 100%;
     border: none;
+    pointer-events: none; /* 操作を無効化（重要） */
+    transform: scale(0.8); /* 少し縮小して全体を見やすくする（お好みで外してもOK） */
+    transform-origin: top left;
+    width: 125%; /* 縮小した分、幅と高さを広げる */
+    height: 125%;
+}
+
+/* マウスを乗せた時に出てくる「全画面で遊ぶ」ボタンのデザイン */
+.overlay-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    opacity: 0; /* 最初は透明で見えない */
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+}
+
+/* サムネイルにマウスを乗せるとボタンがフワッと浮かび上がる */
+.thumbnail-link:hover .overlay-text {
+    opacity: 1;
 }
 
 .vote-area {
