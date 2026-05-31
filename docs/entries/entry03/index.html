@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRChat ユーザー評価アンケート</title>
+<style>
+    /* 全体的に不安になるフォントとレイアウト */
+    body {
+        font-family: "Comic Sans MS", "MS PGothic", sans-serif;
+        background-color: #f0f8ff;
+        color: #333;
+        padding: 20px;
+        overflow-x: hidden; /* 逃げたボタン用 */
+    }
+    h1 {
+        text-align: center;
+        text-decoration: underline wavy red;
+    }
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 20px;
+        border: 2px dashed #999;
+        box-shadow: 10px 10px 0px #ccc;
+    }
+    .section {
+        margin-bottom: 30px;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        /* ランダムにずらすためにトランジションは外しておく */
+    }
+    
+    /* 要素を少し傾かせるためのクラス */
+    .crooked {
+        display: inline-block;
+        transition: transform 0.2s;
+    }
+
+    /* labelをずらせるようにinline-blockにする */
+    label {
+        display: inline-block;
+    }
+
+    /* セキュアキーパッドのスタイル */
+    #keypad-container {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 2px;
+        margin-top: 10px;
+        background: #eee;
+        padding: 5px;
+    }
+    .keypad-btn {
+        padding: 10px 5px;
+        cursor: pointer;
+        background: #ddd;
+        border: 1px solid #aaa;
+        font-weight: bold;
+    }
+
+    /* チェックボックスぐらぐらアニメーション */
+    @keyframes move-lr {
+        0%, 100% { left: -15px; }
+        50% { left: 15px; }
+    }
+    @keyframes move-rl {
+        0%, 100% { left: 15px; }
+        50% { left: -15px; }
+    }
+    .sway-0 { position: relative; animation: move-lr 1.5s ease-in-out infinite; }
+    .sway-1 { position: relative; animation: move-rl 2.1s ease-in-out infinite; }
+    .sway-2 { position: relative; animation: move-lr 2.7s ease-in-out infinite reverse; }
+
+    /* 設問1の特殊レイアウト */
+    .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .no-will-container {
+        text-align: right;
+        font-size: 0.8em;
+        color: #666;
+    }
+
+    /* 設問3のスライダー */
+    #time-slider {
+        width: 30px; /* 極端に狭い */
+        cursor: ew-resize;
+    }
+
+    /* 自由記述テキストエリア */
+    textarea {
+        width: 90%;
+        height: 100px;
+        resize: none;
+    }
+
+    /* 送信ボタン（逃げる用） */
+    #submit-btn {
+        padding: 15px 30px;
+        background-color: #ff4500;
+        color: white;
+        border: none;
+        font-size: 1.2em;
+        cursor: pointer;
+        transition: top 0.2s, left 0.2s; /* 逃げる時のアニメーション */
+        opacity: 0.5;
+    }
+    #submit-btn.enabled {
+        opacity: 1;
+    }
+
+    /* 広告バナー */
+    #ad-banner {
+        position: fixed;
+        bottom: -500px; /* 初期位置は画面外下部 */
+        left: 0;
+        width: 100%;
+        box-sizing: border-box;
+        background-color: #ffe4e1;
+        border-top: 5px solid red;
+        padding: 30px 15px;
+        min-height: 200px; /* 送信ボタンを完全に覆い隠す高さを確保 */
+        box-shadow: 0 -10px 25px rgba(0,0,0,0.5); /* 影を上向きに */
+        z-index: 9999;
+        /* 少しバウンドしながら下から上がってくるアニメーション */
+        transition: bottom 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), height 0.5s ease; 
+        text-align: center;
+    }
+    #ad-banner.show {
+        bottom: 0; /* 下端に固定 */
+    }
+    .ad-close-fake {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        cursor: pointer;
+        font-weight: bold;
+        background: #fff;
+        border: 2px solid #000;
+        padding: 4px 10px;
+    }
+    #ad-content-expanded {
+        display: none;
+        margin-top: 40px;
+        text-align: center;
+    }
+    #ad-banner.show {
+        bottom: 0; /* 下端に固定 */
+    }
+    .ad-close-fake {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        background: #fff;
+        border: 1px solid #000;
+        padding: 2px 6px;
+    }
+    #ad-content-expanded {
+        display: none;
+        margin-top: 20px;
+        text-align: center;
+    }
+    .marquee-wrapper {
+        width: 100%;
+        overflow: hidden;
+        margin-top: 30px;
+        position: relative;
+        height: 20px;
+    }
+    .tiny-close {
+        font-size: 8px;
+        color: #ccc;
+        cursor: pointer;
+        position: absolute;
+        white-space: nowrap;
+        /* 3秒で画面を横断するため、かなりクリックしづらいです */
+        animation: scroll-left 3s linear infinite;
+    }
+    @keyframes scroll-left {
+        0% { left: 100%; }
+        100% { left: -100%; }
+    }
+
+    /* モーダル (急げ！時間がない！！) */
+    #urgent-modal {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        overflow: hidden; /* 巨大化した時にはみ出させない */
+    }
+    .modal-content {
+        background: yellow;
+        color: red;
+        padding: 50px;
+        font-size: 2em;
+        font-weight: bold;
+        position: relative;
+        text-align: center;
+        border: 10px dashed red;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 拡大アニメーション */
+    }
+    .modal-close-fake {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        background: #fff;
+        border: 2px solid #000;
+        padding: 5px 10px;
+        color: black;
+        transition: transform 0.3s;
+    }
+</style>
+</head>
+<body>
+
+<h1>VRChat 評価アンケート</h1>
+
+<div class="form-container">
+    <!-- 名前入力 -->
+    <div class="section crooked">
+        <label>1. お名前 (ひらがな入力推奨):</label><br>
+        <input type="text" id="name-input" placeholder="名前を入力">
+        <small style="color:gray;">※高度な入力支援システムが稼働しています</small>
+    </div>
+
+    <!-- メールアドレス入力 -->
+    <div class="section crooked">
+        <label>2. メールアドレス (セキュアキーパッド):</label><br>
+        <input type="text" id="email-input" readonly placeholder="キーパッドで入力してください" style="width: 80%;">
+        <button id="email-clear">クリア</button>
+        <div id="keypad-container"></div>
+    </div>
+
+    <!-- 設問1 -->
+    <div class="section">
+        <label class="crooked">3. あなたが重視する要素は？ (複数選択):</label>
+        <div class="checkbox-grid" id="q1-grid">
+            <!-- JSで生成 -->
+        </div>
+    </div>
+
+    <!-- 設問2 (逃げる/入れ替わるラジオボタン) -->
+    <div class="section">
+        <label class="crooked">4. 主なプレイスタイルは？:</label>
+        <div id="q2-container">
+            <div class="crooked"><input type="radio" name="style" value="1"><span class="q2-label">デスクトップ</span></div>
+            <div class="crooked"><input type="radio" name="style" value="2"><span class="q2-label">PCVR</span></div>
+            <div class="crooked"><input type="radio" name="style" value="3"><span class="q2-label">Quest単体</span></div>
+            <div class="crooked"><input type="radio" name="style" value="4"><span class="q2-label">フルトラッキング</span></div>
+        </div>
+    </div>
+
+    <!-- 設問3 (極小スライダー) -->
+    <div class="section crooked">
+        <label>5. VRChatでの総プレイ時間は？ (0〜10000時間):</label><br>
+        <input type="range" id="time-slider" min="0" max="10000" value="5000">
+        <span id="time-value">5000</span> 時間
+    </div>
+
+    <!-- 設問4 (自由記述 ＆ タイマー) -->
+    <div class="section crooked">
+        <label>6. その他、ご意見をご自由にお書きください:</label><br>
+        <textarea id="free-text" placeholder="ここに記入してください..."></textarea>
+    </div>
+
+    <!-- 悪意のある最終チェックボックス -->
+    <div class="section crooked" style="border: 2px solid red; background-color: #fff5f5; padding: 15px;">
+        <div class="no-will-container">
+            <input type="checkbox" id="no-will" checked>
+            <label for="no-will">【重要】私はロボットではありません。また、上記選択の包括的解除に同意し、回答の意思が存在しないことを証明しない手続きを保留します。<br>（※チェックを外すと正常に送信されない恐れがあります）</label>
+        </div>
+    </div>
+
+    <!-- 送信ボタン -->
+    <div style="text-align: center; height: 100px; position: relative;" id="submit-container">
+        <button id="submit-btn" disabled>送信する</button>
+    </div>
+</div>
+
+<!-- 広告バナー -->
+<div id="ad-banner">
+    <div class="ad-close-fake" id="ad-close-btn">×</div>
+    <div id="ad-content-main">
+        <h3>🚨重要なお知らせ🚨</h3>
+        <p>あなたのPCがウイルスに感染している可能性があります！今すぐスキャンしてください！</p>
+    </div>
+    <div id="ad-content-expanded">
+        <h4>この有益な広告を本当に閉じますか？</h4>
+        <button id="ad-no-btn" style="padding: 10px 20px; font-size: 1.2em;">NO (広告を見続ける)</button>
+        <div class="marquee-wrapper">
+            <span class="tiny-close" id="ad-real-close">閉じるのであればここをクリック</span>
+        </div>
+    </div>
+</div>
+
+<!-- 焦らせモーダル -->
+<div id="urgent-modal">
+    <div class="modal-content">
+        <div class="modal-close-fake" id="modal-expand-btn">×</div>
+        急げ！時間がない！！<br>
+        早く入力しろ！！！
+    </div>
+</div>
+
+<script>
+    // --- 全体: ランダムな傾きと配置のズレを付与 ---
+    
+    // 1. 傾き (crookedクラス)
+    document.querySelectorAll('.crooked').forEach(el => {
+        const angle = (Math.random() * 4) - 2; // -2度から+2度
+        el.style.transform = `rotate(${angle}deg)`;
+    });
+
+    // 2. 左マージンをランダムに設定して整列感を完全に破壊する
+    // セクション、ラベル、テキスト入力欄を対象にする
+    document.querySelectorAll('.section, .section label, input[type="text"], textarea, .no-will-container').forEach(el => {
+        // -10px から +40px の間でランダムにずらす
+        const shiftX = (Math.random() * 50) - 10; 
+        el.style.marginLeft = `${shiftX}px`;
+    });
+
+    // --- 名前入力: ひらがな・カタカナ・英字ずらし ---
+    const nameInput = document.getElementById('name-input');
+    function shiftText(text) {
+        let result = '';
+        for (let i = 0; i < text.length; i++) {
+            let code = text.charCodeAt(i);
+            
+            // ひらがな (ぁ: 12353 〜 ん: 12435)
+            if (code >= 12353 && code <= 12435) {
+                if (code === 12435) result += String.fromCharCode(12354); // 'ん' -> 'あ'
+                else result += String.fromCharCode(code + 1);
+            }
+            // カタカナ (ァ: 12449 〜 ン: 12531)
+            else if (code >= 12449 && code <= 12531) {
+                if (code === 12531) result += String.fromCharCode(12449); // 'ン' -> 'ァ'
+                else result += String.fromCharCode(code + 1);
+            }
+            // 英字大文字 (A: 65 〜 Z: 90)
+            else if (code >= 65 && code <= 90) {
+                if (code === 90) result += String.fromCharCode(65); // Z -> A
+                else result += String.fromCharCode(code + 1);
+            }
+            // 英字小文字 (a: 97 〜 z: 122)
+            else if (code >= 97 && code <= 122) {
+                if (code === 122) result += String.fromCharCode(97); // z -> a
+                else result += String.fromCharCode(code + 1);
+            }
+            // その他（漢字、記号、数字など）はそのまま
+            else {
+                result += text[i];
+            }
+        }
+        return result;
+    }
+    
+    // 変換中の文字には影響させず、確定後や入力後にずらす
+    let isComposing = false;
+    nameInput.addEventListener('compositionstart', () => { isComposing = true; });
+    nameInput.addEventListener('compositionend', (e) => { 
+        isComposing = false;
+        // 確定した瞬間に文字をずらす
+        setTimeout(() => { nameInput.value = shiftText(nameInput.value); validateForm(); }, 10);
+    });
+    nameInput.addEventListener('input', () => {
+        if (!isComposing) {
+            let original = nameInput.value;
+            let shifted = shiftText(original);
+            if (original !== shifted) {
+                // カーソル位置を維持しようとするが少しおかしくなる（クソUI要素）
+                let start = nameInput.selectionStart;
+                nameInput.value = shifted;
+                nameInput.setSelectionRange(start, start);
+            }
+        }
+        validateForm();
+    });
+
+    // --- メールアドレス: セキュアキーパッド ---
+    const emailInput = document.getElementById('email-input');
+    const keypadContainer = document.getElementById('keypad-container');
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789@._-".split('');
+    
+    function renderKeypad() {
+        keypadContainer.innerHTML = '';
+        // シャッフル
+        const shuffled = chars.sort(() => Math.random() - 0.5);
+        shuffled.forEach(char => {
+            const btn = document.createElement('div');
+            btn.className = 'keypad-btn crooked';
+            btn.innerText = char;
+            // キー自体も少し傾ける
+            btn.style.transform = `rotate(${(Math.random() * 10) - 5}deg)`;
+            btn.addEventListener('click', () => {
+                emailInput.value += char;
+                renderKeypad(); // 打つたびに再シャッフル
+                validateForm();
+            });
+            keypadContainer.appendChild(btn);
+        });
+    }
+    renderKeypad();
+    document.getElementById('email-clear').addEventListener('click', () => {
+        emailInput.value = '';
+        validateForm();
+    });
+
+    // --- 設問1: チェックボックス群 ---
+    const q1Grid = document.getElementById('q1-grid');
+    const q1Labels = ["アバター", "ワールド", "イベント", "フレンド", "コミュニティ", "写真撮影", "ゲーム", "音楽", "技術"];
+    q1Labels.forEach((label, i) => {
+        const div = document.createElement('div');
+        // sway-0, sway-1, sway-2 を順番に付与してバラバラに動かす
+        div.className = `crooked sway-${i % 3}`;
+        div.innerHTML = `<input type="checkbox" id="q1-${i}" checked> <label for="q1-${i}">${label}</label>`;
+        q1Grid.appendChild(div);
+    });
+    const noWillCheckbox = document.getElementById('no-will');
+    noWillCheckbox.addEventListener('change', validateForm);
+
+    // --- 設問2: ラベル入れ替わりラジオボタン ---
+    const q2Labels = document.querySelectorAll('.q2-label');
+    const q2Container = document.getElementById('q2-container');
+    q2Container.addEventListener('mouseenter', () => {
+        // ラベルのテキストだけを取得してシャッフルして再割り当て
+        let texts = Array.from(q2Labels).map(l => l.innerText);
+        texts = texts.sort(() => Math.random() - 0.5);
+        q2Labels.forEach((label, i) => {
+            label.innerText = texts[i];
+        });
+    });
+    document.querySelectorAll('input[name="style"]').forEach(radio => {
+        radio.addEventListener('change', validateForm);
+    });
+
+    // --- 設問3: 極小スライダー ---
+    const timeSlider = document.getElementById('time-slider');
+    const timeValue = document.getElementById('time-value');
+    timeSlider.addEventListener('input', () => {
+        timeValue.innerText = timeSlider.value;
+        validateForm();
+    });
+
+    // --- 設問4: 5秒タイマーモーダル ---
+    const freeText = document.getElementById('free-text');
+    const modal = document.getElementById('urgent-modal');
+    const modalExpandBtn = document.getElementById('modal-expand-btn');
+    let focusTimer;
+    let modalTriggered = false;
+
+    freeText.addEventListener('focus', () => {
+        if (!modalTriggered) {
+            focusTimer = setTimeout(() => {
+                modal.style.display = 'flex';
+                modalTriggered = true;
+            }, 5000);
+        }
+    });
+    freeText.addEventListener('blur', () => {
+        clearTimeout(focusTimer);
+    });
+    freeText.addEventListener('input', validateForm);
+
+    // モーダルの×ボタンは拡大機能
+    modalExpandBtn.addEventListener('click', () => {
+        const modalContent = document.querySelector('.modal-content');
+        
+        // 押された×ボタン自体は隠す
+        modalExpandBtn.style.display = 'none';
+        
+        // モーダル全体を画面いっぱいに巨大化させる（強烈なインパクト）
+        modalContent.style.transform = 'scale(10)';
+        
+        // 3秒後に無理やり閉じて元に戻す
+        setTimeout(() => {
+            modal.style.display = 'none';
+            // 次回フォーカス時のために状態をリセット
+            modalContent.style.transform = 'scale(1)';
+            modalExpandBtn.style.display = 'block';
+        }, 3000);
+    });
+
+    // --- 広告バナー (スクロール検知で出現) ---
+    const adBanner = document.getElementById('ad-banner');
+    const adCloseBtn = document.getElementById('ad-close-btn');
+    const adMain = document.getElementById('ad-content-main');
+    const adExpanded = document.getElementById('ad-content-expanded');
+    const adRealClose = document.getElementById('ad-real-close');
+    const adNoBtn = document.getElementById('ad-no-btn');
+    const submitContainer = document.getElementById('submit-container');
+    
+    let bannerCooldown = false;
+
+    // 送信ボタンのコンテナが画面に入ったかを監視するオブザーバー
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            // 見えていて、かつクールダウン中でなければバナーを出す
+            if (entry.isIntersecting && !bannerCooldown) {
+                if (!adBanner.classList.contains('show')) {
+                    adBanner.classList.add('show');
+                    // 初期状態に戻す
+                    adBanner.style.height = 'auto';
+                    adMain.style.display = 'block';
+                    adExpanded.style.display = 'none';
+                    adCloseBtn.style.display = 'block';
+                }
+            }
+        });
+    }, { threshold: 0.1 }); // 10%見えたら発動
+
+    observer.observe(submitContainer);
+
+    adCloseBtn.addEventListener('click', () => {
+        // ×を押すと縦にビヨーンと拡大する
+        adBanner.style.height = '400px';
+        adMain.style.display = 'none';
+        adCloseBtn.style.display = 'none';
+        adExpanded.style.display = 'block';
+    });
+
+    adNoBtn.addEventListener('click', () => {
+        // NOを押すと元のバナーに戻る
+        adBanner.style.height = 'auto';
+        adMain.style.display = 'block';
+        adCloseBtn.style.display = 'block';
+        adExpanded.style.display = 'none';
+    });
+
+    adRealClose.addEventListener('click', () => {
+        adBanner.classList.remove('show');
+        // 閉じたら5秒間は出ないようにする（その後見えたらまた出る）
+        bannerCooldown = true;
+        setTimeout(() => {
+            bannerCooldown = false;
+        }, 5000);
+    });
+
+    // --- 送信ボタンとバリデーション ---
+    const submitBtn = document.getElementById('submit-btn');
+    let escapeCount = 0;
+    const MAX_ESCAPE = 6;
+
+    function validateForm() {
+        const isNameFilled = nameInput.value.trim() !== '';
+        const isEmailFilled = emailInput.value.trim() !== '';
+        const isQ2Selected = document.querySelector('input[name="style"]:checked') !== null;
+        const isNoWillChecked = noWillCheckbox.checked;
+        const isFreeTextFilled = freeText.value.trim() !== '';
+
+        // 全て入力済み ＆ 「回答の意思がない」が外れている場合のみ有効
+        if (isNameFilled && isEmailFilled && isQ2Selected && isFreeTextFilled && !isNoWillChecked) {
+            submitBtn.disabled = false;
+            submitBtn.classList.add('enabled');
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('enabled');
+            // ボタンの位置をリセット
+            submitBtn.style.position = 'static';
+            escapeCount = 0;
+        }
+    }
+
+    // 逃げる処理
+    submitBtn.addEventListener('mouseover', () => {
+        if (!submitBtn.disabled && escapeCount < MAX_ESCAPE) {
+            submitBtn.style.position = 'absolute';
+            // コンテナ内でランダム移動
+            const containerWidth = submitContainer.clientWidth - submitBtn.clientWidth;
+            const containerHeight = submitContainer.clientHeight - submitBtn.clientHeight + 100; // 少し広めに逃げる
+            
+            const randomX = Math.random() * containerWidth;
+            const randomY = Math.random() * containerHeight - 50;
+
+            submitBtn.style.left = `${randomX}px`;
+            submitBtn.style.top = `${randomY}px`;
+            escapeCount++;
+        }
+    });
+
+    // 送信処理
+    submitBtn.addEventListener('click', (e) => {
+        if(submitBtn.disabled) return;
+        e.preventDefault();
+        alert('送信されました。ご協力（？）ありがとうございました。');
+        // リセット
+        location.reload();
+    });
+
+</script>
+</body>
+</html>
