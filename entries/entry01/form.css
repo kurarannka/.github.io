@@ -1,0 +1,207 @@
+/* ========================================== */
+/* 全体・ベース設定                           */
+/* ========================================== */
+body {
+    font-family: 'MS PGothic', sans-serif;
+    color: #333;
+    padding: 0;
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+/* ========================================== */
+/* 背景要素 (巨大テキストエリア)              */
+/* ========================================== */
+.background-textarea {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #d7d7d776;
+    border: none;
+    padding: 20px;
+    box-sizing: border-box;
+    font-size: 120px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.029);
+    resize: none;
+    outline: none;
+    line-height: 1.2;
+}
+
+.background-textarea::placeholder {
+    font-size: 30px;
+    color: rgba(0, 0, 0, 0.3);
+}
+
+/* ========================================== */
+/* メインフォームコンテナ                     */
+/* ========================================== */
+.form-container {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh; 
+    overflow-y: auto;
+    background-color: rgba(255, 255, 255, 0.3); 
+    backdrop-filter: blur(5px);
+    padding: 20px;
+    border: 1px solid #d7d7d752;
+    box-shadow: 0 10px 30px rgba(36, 138, 36, 0.3);
+    z-index: 10;
+    transition: transform 0.15s ease-out;
+    box-sizing: border-box;
+}
+
+/* ========================================== */
+/* フォームパーツ・レイアウト                 */
+/* ========================================== */
+.form-group {
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+/* ========================================== */
+/* カスタムラジオボタン (チェックボックス風)    */
+/* ========================================== */
+input[type="radio"].fake-checkbox {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #777;
+    border-radius: 2px;
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    margin-right: 5px;
+    background-color: #fff;
+}
+
+input[type="radio"].fake-checkbox:checked::after {
+    content: '✔';
+    position: absolute;
+    top: -3px;
+    left: 2px;
+    font-size: 14px;
+    color: #333;
+}
+
+.radio-label {
+    font-weight: normal;
+    display: inline-flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+/* ========================================== */
+/* 透明な送信ボタン                           */
+/* ========================================== */
+.submit-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-top: 40px;
+    background-color: #ffffff00; 
+    color: #ffffff00; 
+    border: 1px solid #ffffff00;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.submit-btn:hover {
+    background-color: #eeeeee2f;
+    color: #e0e0e0a9;
+}
+
+/* ========================================== */
+/* 年月日コントローラー                       */
+/* ========================================== */
+.month-day-controller {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.month-day-controller button {
+    width: 100%;
+    height: 25px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.month-day-controller button:hover {
+    background-color: #e0e0e0;
+}
+
+#startMonthDay {
+    width: 120px;
+    text-align: center;
+    pointer-events: none;
+    background-color: #fafafa;
+}
+
+/* ========================================== */
+/* ワールド入力欄・スライダー                 */
+/* ========================================== */
+.world-inputs-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.world-inputs-wrapper div {
+    display: flex;
+    align-items: center;
+}
+
+.world-inputs-wrapper input {
+    flex-grow: 1;
+}
+
+.slider-container {
+    margin-top: 20px;
+    position: relative;
+    width: 100%;
+}
+
+#worldSlider {
+    width: 100%; 
+    margin: 0;
+    cursor: pointer;
+}
+
+.slider-ticks {
+    position: relative;
+    height: 20px;
+    width: 100%;
+    pointer-events: none;
+    font-size: 12px;
+    font-weight: bold;
+    color: #555;
+    margin-top: 5px;
+}
+
+.slider-ticks span {
+    position: absolute;
+    transform: translateX(-50%);
+}
