@@ -8,8 +8,9 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 
 // 3. 初期読み込み
 document.addEventListener("DOMContentLoaded", () => {
+    startCountdown(); // 【追加】カウントダウンと時間チェックを開始
     loadVoteCounts();
-    checkAlreadyVoted(); // 【追加】画面を開いた時に「投票済み」かチェックする
+    checkAlreadyVoted(); 
 });
 
 // 4. 票数を取得して画面に反映する関数
@@ -88,4 +89,34 @@ function checkAlreadyVoted() {
             }
         }
     });
+}
+// --------------------------------------------------
+// 【追加】指定時間までロック画面を表示する機能
+function startCountdown() {
+    // 公開日時を設定（2026年6月1日 00:00:00 日本時間）
+    const OPEN_DATE = new Date('2026-06-01T00:00:00+09:00').getTime();
+    
+    const lockScreen = document.getElementById('lock-screen');
+    const countdownText = document.getElementById('countdown-text');
+
+    // 1秒ごとに時間をチェック
+    const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = OPEN_DATE - now;
+
+        if (distance <= 0) {
+            // 時間になったらタイマーを止めて、幕（ロック画面）を消す
+            clearInterval(timer);
+            if (lockScreen) lockScreen.style.display = 'none';
+        } else {
+            // まだ時間前ならカウントダウンを表示
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            if (countdownText) {
+                countdownText.textContent = `公開まであと ${hours}時間 ${minutes}分 ${seconds}秒`;
+            }
+        }
+    }, 1000);
 }
