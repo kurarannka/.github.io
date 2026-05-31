@@ -1,6 +1,6 @@
 // 【重要】Step 3で取得したURLとanonキーに書き換えてください
 const SUPABASE_URL = 'https://qpqwbfktdmffbexuupow.supabase.co';
-const SUPABASE_ANON_KEY = 'qpqwbfktdmffbexuupow';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcXdiZmt0ZG1mZmJleHV1cG93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMDMzNDYsImV4cCI6MjA5NTc3OTM0Nn0.tfuVcmkQRjqhBvtUKgEvpH3WHEJFI-vWyIPfs2CeJO8';
 
 // Supabaseクライアントの初期化
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
