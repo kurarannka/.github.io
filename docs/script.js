@@ -8,12 +8,11 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 
 // 3. 初期読み込み
 document.addEventListener("DOMContentLoaded", () => {
-    // startCountdown(); // 本番でカウントダウンを使う場合はコメントを外してください
     loadVoteCounts();
-    checkAlreadyVoted(); // 【変更】通常とトップ、両方の投票済み状態をチェックする
+    checkAlreadyVoted(); 
 });
 
-// 4. 全票数を取得して画面に反映
+// 4. 全票数を取得して【合計】を画面に反映
 async function loadVoteCounts() {
     const { data, error } = await supabaseClient.from('votes').select('entry_id, vote_type');
     if (error) {
@@ -21,33 +20,33 @@ async function loadVoteCounts() {
         return;
     }
 
-    const counts = {
-        normal: { "entry01": 0, "entry02": 0, "entry03": 0, "entry04": 0 },
-        top: { "entry01": 0, "entry02": 0, "entry03": 0, "entry04": 0 }
-    };
+    const counts = { "entry01": 0, "entry02": 0, "entry03": 0, "entry04": 0 };
     
+    // 通常もトップも同じ合算プールに足していく
     data.forEach(vote => {
-        const type = vote.vote_type || 'normal';
-        if (counts[type] && counts[type][vote.entry_id] !== undefined) {
-            counts[type][vote.entry_id]++;
+        if (counts[vote.entry_id] !== undefined) {
+            // 【変更可能】もしトップ投票を「+2票」の重みにしたい場合は、
+            // ここの += 1 を += (vote.vote_type === 'top' ? 2 : 1) に変更してください。
+            counts[vote.entry_id] += 1;
         }
     });
 
-    Object.keys(counts.normal).forEach(id => {
-        const normalEl = document.getElementById(`count-normal-${id}`);
-        const topEl = document.getElementById(`count-top-${id}`);
-        if (normalEl) normalEl.textContent = counts.normal[id];
-        if (topEl) topEl.textContent = counts.top[id];
+    Object.keys(counts).forEach(id => {
+        const countEl = document.getElementById(`count-${id}`);
+        if (countEl) countEl.textContent = counts[id];
     });
 }
 
-// 5-A. 💩 1コンテンツにつき1回だけの「クソ！」ボタン処理
+// 5-A. 💩 1コンテンツにつき1回だけの「通常クソ！」ボタン処理
 window.handleNormalVote = async function(entryId) {
-    // 【追加】この作品に通常のクソ投票をしたかチェック
     if (localStorage.getItem(`voted_normal_${entryId}`)) {
         alert("この作品の「クソ！」にはすでに投票済みです！");
         return;
     }
+
+    // 画面の数字を先に+1する（サクサク演出）
+    const countEl = document.getElementById(`count-${entryId}`);
+    if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
 
     const button = document.querySelector(`[data-entry-id="${entryId}"] .normal-btn`);
     if(button) button.disabled = true;
@@ -56,12 +55,9 @@ window.handleNormalVote = async function(entryId) {
         const { error } = await supabaseClient.from('votes').insert([{ entry_id: entryId, vote_type: 'normal' }]);
         if (error) throw error;
 
-        alert(`エントリー [${entryId}] にクソ投票しました！`);
-        
-        // ブラウザに「この作品の通常ボタンを押した」と記憶させる
+        alert(`エントリー [${entryId}] に通常クソ投票しました！`);
         localStorage.setItem(`voted_normal_${entryId}`, 'true');
         
-        // ボタンをグレーアウト
         if(button) {
             button.innerHTML = "💩 投票済";
             button.style.background = "#999";
@@ -84,13 +80,17 @@ window.handleTopVote = async function(entryId) {
         return;
     }
 
+    // 画面の数字を先に+1する（「1票多く」追加）
+    const countEl = document.getElementById(`count-${entryId}`);
+    if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
+
     lockAllTopButtons();
 
     try {
         const { error } = await supabaseClient.from('votes').insert([{ entry_id: entryId, vote_type: 'top' }]);
         if (error) throw error;
 
-        alert(`👑 エントリー [${entryId}] をトップオブクソに認定しました！`);
+        alert(`👑 エントリー [${entryId}] にトップオブクソ投票を追加しました！`);
         localStorage.setItem('voted_top_kuso', 'true');
         await loadVoteCounts();
         
@@ -104,15 +104,12 @@ window.handleTopVote = async function(entryId) {
 
 // 6. 画面読み込み時に、既に投票済みかチェックする関数
 function checkAlreadyVoted() {
-    // ① トップオブクソのチェック（どれか1つでも押していれば全部ロック）
     if (localStorage.getItem('voted_top_kuso')) {
         lockAllTopButtons();
     }
 
-    // ② 各エントリーごとの通常クソのチェック
     document.querySelectorAll('.entry-card').forEach(card => {
         const entryId = card.getAttribute('data-entry-id');
-        
         if (localStorage.getItem(`voted_normal_${entryId}`)) {
             const normalBtn = card.querySelector('.normal-btn');
             if (normalBtn) {
@@ -146,30 +143,4 @@ function unlockAllTopButtons() {
         btn.style.background = "linear-gradient(135deg, #ffd700, #ff8c00)";
         btn.style.cursor = "pointer";
     });
-}
-
-// --------------------------------------------------
-// 7. 指定時間までロック画面を表示する機能
-function startCountdown() {
-    const OPEN_DATE = new Date('2026-06-01T00:00:00+09:00').getTime();
-    const lockScreen = document.getElementById('lock-screen');
-    const countdownText = document.getElementById('countdown-text');
-
-    const timer = setInterval(() => {
-        const now = new Date().getTime();
-        const distance = OPEN_DATE - now;
-
-        if (distance <= 0) {
-            clearInterval(timer);
-            if (lockScreen) lockScreen.style.display = 'none';
-        } else {
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            
-            if (countdownText) {
-                countdownText.textContent = `公開まであと ${hours}時間 ${minutes}分 ${seconds}秒`;
-            }
-        }
-    }, 1000);
 }
