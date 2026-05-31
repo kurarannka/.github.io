@@ -1,5 +1,5 @@
 // 【重要】Step 3で取得したURLとanonキーに書き換えてください
-const SUPABASE_URL = 'https://qpqwbfktdmffbexuupow.supabase.co/rest/v1/';
+const SUPABASE_URL = 'https://qpqwbfktdmffbexuupow.supabase.co';
 const SUPABASE_ANON_KEY = 'qpqwbfktdmffbexuupow';
 
 // Supabaseクライアントの初期化
