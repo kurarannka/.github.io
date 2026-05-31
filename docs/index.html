@@ -19,8 +19,7 @@
     <header>
         <h1>第一回 クソUI_WEBアンケート選手権</h1>
         <p>エントリーされた最悪なアンケートたちを実際に触って、「クソ」だと思ったものに投票してください。</p>
-        <p>※複数投票可</p>
-        <p></p>
+        <p>※通常ボタンは複数投票・連打可。トップオブクソは全体で1回のみです。</p>
         <p>02のみデータが本当に飛んでいくのでメールアドレスはなんか適当に入力してね。</p>
     </header>
 
@@ -36,22 +35,34 @@
                     </a>
                 </div>
                 <div class="vote-area">
-                    <button class="vote-button" onclick="handleVote('entry01')">クソ！</button>
-                    <span class="vote-count" id="count-entry01">0 クソ</span>
+                    <div class="vote-group">
+                        <button class="vote-button normal-btn" onclick="handleNormalVote('entry01')">💩 クソ！<br><small>(連打OK)</small></button>
+                        <span class="vote-count"><span id="count-normal-entry01">0</span> クソ</span>
+                    </div>
+                    <div class="vote-group">
+                        <button class="vote-button top-btn" onclick="handleTopVote('entry01')">👑 トップ！<br><small>(1人1回のみ)</small></button>
+                        <span class="vote-count"><span id="count-top-entry01">0</span> 👑</span>
+                    </div>
                 </div>
             </div>
 
             <div class="entry-card" data-entry-id="entry02">
                 <h2 class="entry-title">エントリーNo.02</h2>
                 <div class="iframe-container">
-                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc07xJh2XwxaFw3oB_6UHPmjeF-czWetekPekgG2eBcLY7WYQ/viewform" target="_blank" class="thumbnail-link">
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc07xJh2XwxaFw3oB_6UHPmjeF-czWetekPekgG2eBcLY7WYQ/viewform?embedded=true" target="_blank" class="thumbnail-link">
                         <div class="overlay-text">▶ 全画面で遊ぶ</div>
-                        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSc07xJh2XwxaFw3oB_6UHPmjeF-czWetekPekgG2eBcLY7WYQ/viewform" sandbox="allow-scripts"></iframe>
+                        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSc07xJh2XwxaFw3oB_6UHPmjeF-czWetekPekgG2eBcLY7WYQ/viewform?embedded=true"></iframe>
                     </a>
                 </div>
                 <div class="vote-area">
-                    <button class="vote-button" onclick="handleVote('entry02')">クソ！</button>
-                    <span class="vote-count" id="count-entry02">0 クソ</span>
+                    <div class="vote-group">
+                        <button class="vote-button normal-btn" onclick="handleNormalVote('entry02')">💩 クソ！<br><small>(連打OK)</small></button>
+                        <span class="vote-count"><span id="count-normal-entry02">0</span> クソ</span>
+                    </div>
+                    <div class="vote-group">
+                        <button class="vote-button top-btn" onclick="handleTopVote('entry02')">👑 トップ！<br><small>(1人1回のみ)</small></button>
+                        <span class="vote-count"><span id="count-top-entry02">0</span> 👑</span>
+                    </div>
                 </div>
             </div>
 
@@ -64,8 +75,14 @@
                     </a>
                 </div>
                 <div class="vote-area">
-                    <button class="vote-button" onclick="handleVote('entry03')">クソ！</button>
-                    <span class="vote-count" id="count-entry03">0 クソ</span>
+                    <div class="vote-group">
+                        <button class="vote-button normal-btn" onclick="handleNormalVote('entry03')">💩 クソ！<br><small>(連打OK)</small></button>
+                        <span class="vote-count"><span id="count-normal-entry03">0</span> クソ</span>
+                    </div>
+                    <div class="vote-group">
+                        <button class="vote-button top-btn" onclick="handleTopVote('entry03')">👑 トップ！<br><small>(1人1回のみ)</small></button>
+                        <span class="vote-count"><span id="count-top-entry03">0</span> 👑</span>
+                    </div>
                 </div>
             </div>
 
@@ -78,8 +95,14 @@
                     </a>
                 </div>
                 <div class="vote-area">
-                    <button class="vote-button" onclick="handleVote('entry04')">クソ！</button>
-                    <span class="vote-count" id="count-entry04">0 クソ</span>
+                    <div class="vote-group">
+                        <button class="vote-button normal-btn" onclick="handleNormalVote('entry04')">💩 クソ！<br><small>(連打OK)</small></button>
+                        <span class="vote-count"><span id="count-normal-entry04">0</span> クソ</span>
+                    </div>
+                    <div class="vote-group">
+                        <button class="vote-button top-btn" onclick="handleTopVote('entry04')">👑 トップ！<br><small>(1人1回のみ)</small></button>
+                        <span class="vote-count"><span id="count-top-entry04">0</span> 👑</span>
+                    </div>
                 </div>
             </div>
 
