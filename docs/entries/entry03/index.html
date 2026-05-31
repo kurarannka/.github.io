@@ -1,0 +1,2683 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>VRChat 評価アンケート</title>
+  <style>
+    @font-face {
+      font-family: 'esenapaj';
+      src: url('Resource/Font/esenapaj.otf') format('opentype');
+    }
+
+    body.custom-font {
+      font-family: 'esenapaj', "MS Pゴシック", sans-serif !important;
+    }
+    
+    body.custom-font input,
+    body.custom-font textarea,
+    body.custom-font button,
+    body.custom-font select,
+    body.custom-font .title-bar-text,
+    body.custom-font h1,
+    body.custom-font h2,
+    body.custom-font .taskbar-item,
+    body.custom-font .shortcut,
+    body.custom-font .air-text,
+    body.custom-font .score {
+      font-family: 'esenapaj', "MS Pゴシック", sans-serif !important;
+    }
+
+    /* Modern Survey Style (Start Screen) */
+    #start-screen {
+      position: fixed;
+      inset: 0;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+
+    #start-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.1);
+    }
+
+    .survey-card {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .survey-card h1 {
+      color: #1a73e8;
+      margin-bottom: 16px;
+      font-size: 24px;
+      background: transparent !important; /* Override global h1 style */
+      text-shadow: none !important;
+      padding: 0 !important;
+      text-align: center !important;
+      font-weight: 500 !important;
+    }
+
+    .survey-card p {
+      color: #5f6368;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .survey-card .start-button {
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s ease-out; /* Add transform transition */
+      width: auto !important;
+      position: relative; /* Needed for displacement */
+      display: inline-block;
+    }
+
+    .survey-card .start-button:hover {
+      background-color: #1557b0;
+      border-style: none !important;
+      /* Remove transform: none !important; to prevent jitter with JS translation */
+    }
+
+    /* Glitch transition effect */
+    .glitch-overlay {
+      position: fixed;
+      inset: 0;
+      background: black;
+      z-index: 10001;
+      display: none;
+      color: #0f0;
+      font-family: monospace;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    body {
+      margin: 0;
+      font-family: "MS Pゴシック", sans-serif;
+      background: #f0f2f5; /* Match start screen initially */
+      color: #000000;
+      min-height: 100vh;
+      cursor: default;
+      overflow: hidden; /* Hide scrollbars from desktop */
+    }
+
+    .desktop {
+      display: none; /* Hidden until transition ends */
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      padding: 10px;
+      padding-bottom: 56px;
+    }
+
+    #taskbar {
+      display: none; /* Hidden until transition ends */
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: linear-gradient(180deg, #000050 0%, #000020 100%);
+      border-top: 2px solid #808080;
+      align-items: center;
+      padding: 0 10px;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+
+    #taskbar-items {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      width: 100%;
+    }
+
+    .taskbar-item {
+      padding: 6px 10px;
+      border: 2px outset #dfdfdf;
+      background: #c0c0c0;
+      color: #000000;
+      cursor: pointer;
+      font-size: 0.9rem;
+      border-radius: 0;
+      white-space: nowrap;
+      flex: 0 1 auto;
+    }
+
+    .taskbar-item.active {
+      border-style: inset;
+      background: #000080;
+      color: #ffffff;
+    }
+
+    #desktop-icons {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 20px;
+      height: 100%;
+    }
+
+    .shortcut {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      width: 80px;
+      cursor: pointer;
+      color: #ffffff;
+      text-align: center;
+      text-shadow: 1px 1px 1px #000;
+    }
+    .shortcut:focus {
+      background: rgba(0,0,128,0.5);
+    }
+    .shortcut-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .window {
+      position: absolute;
+      background: #c0c0c0;
+      border-style: outset;
+      border-width: 3px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.2);
+      min-width: 250px;
+      min-height: 140px;
+      display: none; /* Initially hidden */
+      flex-direction: column;
+      overflow: hidden;
+      max-height: calc(100vh - 80px);
+    }
+
+    .window.active,
+    .window.show {
+      display: flex;
+    }
+
+    .title-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 6px 10px;
+      background: linear-gradient(180deg, #000080 0%, #000050 100%);
+      color: #ffffff;
+      font-weight: bold;
+      cursor: move;
+      border-bottom: 2px solid #808080;
+      user-select: none;
+    }
+
+    .title-bar-text {
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .window-close-btn {
+      min-width: 28px;
+      min-height: 28px;
+      border: 2px outset #dfdfdf;
+      background: #c0c0c0;
+      color: #000000;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 6px;
+      border-radius: 0;
+    }
+
+    .window-close-btn:active {
+      border-style: inset;
+    }
+
+    .window-body {
+      padding: 10px;
+      flex-grow: 1;
+      overflow: auto;
+      background: #e8e8e8;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: #c0c0c0; /* Classic Windows Grey */
+      border-style: outset;
+      border-width: 3px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.2);
+      padding: 32px;
+    }
+
+    h1 {
+      margin: -32px -32px 24px -32px;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      letter-spacing: 0;
+      background: #000080; /* Classic Title Bar */
+      color: #ffffff;
+      text-shadow: none;
+      text-decoration: none;
+      text-align: left;
+      padding: 4px 10px;
+      font-weight: bold;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: normal;
+      color: #000000;
+      letter-spacing: 0;
+      font-size: 1rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea,
+    .radio-group {
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      border: 2px inset #808080;
+      background: #ffffff;
+      color: #000000;
+      padding: 12px 14px;
+      outline: none;
+      transition: none;
+      font-family: "MS Pゴシック", sans-serif;
+      font-size: 1rem;
+      font-weight: normal;
+      border-radius: 0;
+    }
+
+    ::placeholder {
+      color: #808080;
+      opacity: 1;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    textarea:focus {
+      border-color: #000080;
+      box-shadow: none;
+      background: #ffffff;
+      color: #000000;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .radio-group {
+      display: grid;
+      gap: 10px;
+      padding-left: 10px;
+    }
+
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 400;
+      color: #e5e9f0;
+      margin-bottom: 0;
+    }
+
+    .radio-group input {
+      accent-color: #88c0d0;
+      width: 18px;
+      height: 18px;
+    }
+
+    .physics-range-wrapper {
+      position: relative;
+    }
+
+    .physics-hidden-range {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .physics-slider {
+      position: relative;
+      height: 28px;
+      background: #808080;
+      border-radius: 0;
+      border: 2px inset #000000;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .physics-slider::before {
+      content: none;
+    }
+
+    .physics-fill,
+    .charge-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      border-radius: 0;
+      pointer-events: none;
+      transition: none;
+    }
+
+    .physics-fill {
+      width: 75%;
+      background: #000080;
+    }
+
+    .physics-handle {
+      position: absolute;
+      top: 50%;
+      left: 75%;
+      width: 24px;
+      height: 24px;
+      background: #c0c0c0;
+      border-style: outset;
+      border-width: 2px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      transform: translate(-50%, -50%);
+      transition: none;
+      box-shadow: none;
+    }
+
+    .physics-slider.charging .physics-handle {
+      box-shadow: 0 0 0 8px rgba(0, 0, 128, 0.2);
+    }
+
+    .charge-bar {
+      width: 0;
+      background: rgba(164, 197, 235, 0.35);
+      filter: blur(0.5px);
+    }
+
+    .slider-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .scale-labels {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      text-align: center;
+      gap: 8px;
+      color: #000000;
+      font-size: 0.92rem;
+      letter-spacing: 0.01em;
+      font-weight: normal;
+    }
+
+    .scale-labels span {
+      white-space: nowrap;
+    }
+
+    .range-wrapper {
+      display: grid;
+      gap: 8px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #88c0d0;
+    }
+
+    .slider-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: #000000;
+    }
+
+    .slider-status span {
+      display: inline-block;
+    }
+
+    .slider-status .score {
+      font-weight: bold;
+      color: #000000;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+
+    .keyboard-panel {
+      position: relative;
+      margin-top: 12px;
+      padding: 0 18px;
+      border-radius: 0;
+      background: #c0c0c0;
+      border: 2px inset #808080;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: none;
+      pointer-events: none;
+    }
+
+    .keyboard-effect-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .keyboard-global-effect {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 998;
+      mix-blend-mode: screen;
+      filter: saturate(1.2);
+    }
+
+    .burst {
+      position: absolute;
+      display: inline-block;
+      white-space: nowrap;
+      color: transparent;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+      pointer-events: none;
+      animation: burst 0.75s ease-out forwards;
+      background: linear-gradient(90deg, red, orange, yellow, lime, aqua, blue, magenta);
+      background-image: linear-gradient(90deg, red, orange, yellow, lime, aqua, blue, magenta);
+      background-size: 200%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: none;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 0;
+      transform: translate(-50%, -50%);
+    }
+
+    .slot-flash {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255,0,128,0.12) 0%, rgba(255,255,0,0.18) 15%, rgba(0,255,255,0.18) 35%, rgba(0,128,255,0.18) 55%, rgba(255,0,255,0.18) 75%, rgba(255,0,128,0.12) 100%);
+      opacity: 0;
+      pointer-events: none;
+      animation: slotFlash 0.4s ease-out forwards;
+      z-index: 1;
+    }
+
+    .keyboard-panel.show {
+      max-height: 1000px;
+      opacity: 1;
+      padding: 18px;
+      pointer-events: auto;
+    }
+
+    .keyboard-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: #000000;
+      font-size: 0.95rem;
+      font-weight: normal;
+    }
+
+    .keyboard-controls {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .keyboard-row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: center;
+    }
+
+    .keyboard-row.search {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+    }
+
+    .keyboard-row.search-result {
+      grid-template-columns: 1fr;
+      font-size: 0.9rem;
+      color: #000000;
+      min-height: 1.2em;
+      align-items: center;
+    }
+
+    .keyboard-row.actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .keyboard-row.search input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px inset #808080;
+      border-radius: 0;
+      background: #ffffff;
+      color: #000000;
+      outline: none;
+      font-size: 0.95rem;
+    }
+
+    .key-button.highlight {
+      box-shadow: 0 0 0 3px #000080;
+    }
+
+    select {
+      width: 100%;
+      min-width: 0;
+      padding: 10px 12px;
+      border-style: outset;
+      border-width: 2px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      background: #c0c0c0;
+      color: #000000;
+      border-radius: 0;
+      font-size: 0.95rem;
+      cursor: pointer;
+      outline: none;
+      font-family: "MS Pゴシック", sans-serif;
+    }
+
+    .key-button,
+    .key-action {
+      min-width: 52px;
+      padding: 10px 12px;
+      border-style: outset;
+      border-width: 2px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      background: #c0c0c0;
+      color: #000000;
+      border-radius: 0;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: none;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+      font-family: "MS Pゴシック", sans-serif;
+    }
+
+    .key-button:active,
+    .key-action:active {
+      border-style: inset;
+    }
+
+    .key-button.flash {
+      animation: keyFlash 0.35s ease;
+      box-shadow: 0 0 0 3px rgba(255, 246, 143, 0.9), 0 0 18px rgba(255, 80, 0, 0.8);
+    }
+
+    .burst {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: conic-gradient(red, orange, yellow, lime, aqua, blue, magenta, red);
+      pointer-events: none;
+      animation: burst 0.65s ease-out forwards;
+      mix-blend-mode: screen;
+      box-shadow: 0 0 16px rgba(255,255,255,0.8);
+    }
+
+    .slot-flash {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255,0,128,0.12) 0%, rgba(255,255,0,0.18) 15%, rgba(0,255,255,0.18) 35%, rgba(0,128,255,0.18) 55%, rgba(255,0,255,0.18) 75%, rgba(255,0,128,0.12) 100%);
+      opacity: 0;
+      pointer-events: none;
+      animation: slotFlash 0.4s ease-out forwards;
+      z-index: 1;
+    }
+
+    @keyframes keyFlash {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 246, 143, 0.8);
+      }
+      50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 18px 10px rgba(255, 246, 143, 0.8);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 246, 143, 0);
+      }
+    }
+
+    @keyframes burst {
+      0% {
+        transform: translate(-50%, -50%) scale(0.6);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(2.2);
+        opacity: 0;
+      }
+    }
+
+    @keyframes slotFlash {
+      0% {
+        opacity: 0;
+        transform: translateX(-20%);
+      }
+      50% {
+        opacity: 0.8;
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(120%);
+      }
+    }
+
+    .keys-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .key-button span {
+      display: block;
+      line-height: 1.2;
+      max-height: 2.4em;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    button {
+      width: auto;
+      padding: 14px 18px;
+      border-style: outset;
+      border-width: 2px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      background: #c0c0c0;
+      color: #000000;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: none;
+      font-family: "MS Pゴシック", sans-serif;
+      border-radius: 0;
+    }
+
+    .button-block,
+    .settings-trigger,
+    .key-action,
+    .q2-option-btn,
+    #modalFooter button {
+      width: 100%;
+    }
+
+    button:hover {
+      background: #c0c0c0;
+      border-style: inset;
+      transform: none;
+    }
+
+    .notice {
+      display: none;
+      margin-top: 20px;
+      padding: 14px 16px;
+      border-radius: 0;
+      background: #ffffdd;
+      color: #000000;
+      border: 1px solid #000000;
+      font-weight: normal;
+    }
+
+    .field > label {
+      display: none;
+    }
+
+    .settings-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0 0;
+      padding: 8px 12px;
+      border-style: outset;
+      border-width: 2px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      background: #c0c0c0;
+      color: #000000;
+      border-radius: 0;
+      font-size: 0.85rem;
+      cursor: pointer;
+      opacity: 1;
+      transition: none;
+    }
+
+    .settings-trigger:hover {
+      opacity: 1;
+    }
+
+    .settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 20, 32, 0.8);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .settings-overlay.show {
+      display: flex;
+    }
+
+    .settings-popup {
+      width: min(420px, 100%);
+      background: #c0c0c0;
+      border-style: outset;
+      border-width: 3px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.2);
+      padding: 20px;
+      color: #000000;
+    }
+
+    .settings-popup header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      background: #000080;
+      padding: 4px 8px;
+      margin: -20px -20px 16px -20px;
+    }
+
+    .settings-popup h2 {
+      margin: 0;
+      font-size: 1rem;
+      color: #ffffff;
+      text-shadow: none;
+      font-weight: bold;
+    }
+
+    .settings-popup .close-settings {
+      border: 2px outset #dfdfdf;
+      background: #c0c0c0;
+      color: #000000;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0 4px;
+    }
+
+    .settings-popup .settings-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .settings-popup label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: #000080;
+      font-size: 0.95rem;
+      font-weight: bold;
+    }
+
+    .settings-popup .help-text {
+      margin: 0;
+      color: #ff00ff;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      font-weight: bold;
+    }
+
+    .settings-popup input[type="checkbox"] {
+      accent-color: #88c0d0;
+      width: 18px;
+      height: 18px;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(15, 20, 32, 0.75);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-dialog {
+      width: min(520px, 100%);
+      background: #c0c0c0;
+      border-style: outset;
+      border-width: 3px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.2);
+      overflow: hidden;
+      color: #000000;
+    }
+
+    .modal-header,
+    .modal-footer {
+      padding: 18px 20px;
+      border-bottom: 1px solid #808080;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #000080;
+      padding: 4px 8px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      color: #ffffff;
+      text-shadow: none;
+      font-weight: bold;
+    }
+
+    .modal-close {
+      border: 2px outset #dfdfdf;
+      background: #c0c0c0;
+      color: #000000;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .modal-body {
+      padding: 18px 20px 14px;
+      max-height: 60vh;
+      overflow: auto;
+      line-height: 1.6;
+      color: #000080;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-weight: bold;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      background: #ccffff;
+    }
+
+    .air-pump-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .pump-btn {
+      background: #c0c0c0 !important;
+      border: 4px outset #ffffff;
+      padding: 0;
+      width: 64px;
+      height: 80px;
+      cursor: help;
+      outline: none;
+      user-select: none;
+      -webkit-user-select: none;
+      flex-shrink: 0;
+      transition: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .pump-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .pump-icon {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    }
+
+    .pump-handle {
+      transform-origin: center top;
+      transition: transform 0.05s ease-out;
+    }
+
+    .pump-btn:active .pump-handle,
+    .pump-btn.pumping .pump-handle {
+      transform: translateY(22px);
+    }
+
+    .air-gauge {
+      position: relative;
+      flex-grow: 1;
+      height: 52px;
+      border: 2px inset #808080;
+      border-radius: 0;
+      background: #ffffff;
+      color: #000000;
+      font-size: 1rem;
+      font-weight: 700;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: none;
+      font-family: "MS Pゴシック", sans-serif;
+    }
+
+    .air-gauge.completed {
+      border-color: #808080;
+      background: #ffffff;
+    }
+
+    .air-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: #000080;
+      z-index: 1;
+      pointer-events: none;
+      transition: none;
+    }
+
+    .air-gauge.completed .air-fill {
+      background: #008000;
+    }
+
+    .air-text {
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+    }
+
+    .q3-chaos-container {
+      position: relative;
+      height: 220px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 0;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.4s ease, opacity 0.4s ease, margin-top 0.4s ease, border-color 0.4s ease;
+      pointer-events: none;
+    }
+    .q3-chaos-container.show {
+      max-height: 300px;
+      opacity: 1;
+      margin-top: 8px;
+      border-color: rgba(255, 255, 255, 0.12);
+      pointer-events: auto;
+    }
+    .chaos-radio-wrapper {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #d8dee9;
+      transform: translate(-50%, -50%);
+      padding: 4px;
+      background: rgba(30, 35, 48, 0.6);
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s ease;
+    }
+    .chaos-radio-wrapper:hover {
+      transform: translate(-50%, -50%) scale(1.5);
+      z-index: 999 !important;
+    }
+    .chaos-radio-wrapper input {
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .q2-options-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0);
+      margin-top: 0;
+      max-height: 0;
+      opacity: 0;
+      overflow: auto;
+      transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease, margin-top 0.4s ease, border-color 0.4s ease;
+      pointer-events: none;
+    }
+    .q2-options-container.show {
+      max-height: 300px;
+      padding: 16px;
+      opacity: 1;
+      margin-top: 8px;
+      border-color: rgba(255, 255, 255, 0.12);
+      pointer-events: auto;
+    }
+    .q2-option-btn {
+      flex: 1 1 auto;
+      padding: 6px 10px;
+      border-style: outset;
+      border-width: 2px;
+      border-color: #dfdfdf #808080 #808080 #dfdfdf;
+      background: #c0c0c0;
+      color: #000000;
+      border-radius: 0;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: normal;
+      text-align: center;
+      transition: none;
+      white-space: normal;
+      line-height: 1.3;
+    }
+    .air-pump-container {
+      margin-top: 0;
+    }
+
+    .q2-option-btn:hover {
+      background: #c0c0c0;
+      border-style: inset;
+      transform: none;
+    }
+    .q2-option-btn.selected {
+      background: #000080;
+      color: #ffffff;
+      border-style: inset;
+      font-weight: bold;
+    }
+    #modalFooter {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    #modalFooter button {
+      flex: 1 1 15%;
+      min-width: 60px;
+      font-size: 0.85rem;
+      padding: 8px 10px;
+    }
+
+    .staff-roll-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      color: #fff;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+    }
+    .staff-roll-overlay.show {
+      display: flex;
+    }
+    .staff-roll-content {
+      position: absolute;
+      top: 100%;
+      width: 100%;
+      text-align: center;
+      animation: scrollUp 20s linear forwards;
+    }
+    @keyframes scrollUp {
+      0% { top: 100%; }
+      100% { top: -200%; }
+    }
+    .staff-roll-content h2 {
+      color: #ffff00;
+      text-shadow: none;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+    }
+    .staff-roll-content p {
+      margin: 0.5rem 0;
+      color: #ffffff;
+      font-weight: normal;
+      font-size: 1.1rem;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="glitch-overlay" class="glitch-overlay"></div>
+  <div id="start-screen">
+    <div class="survey-card">
+      <h1>VRChat 利用状況アンケート</h1>
+      <p>このアンケートは、VRChatの利用体験を向上させるための調査です。<br>ご協力をお願いいたします。</p>
+      <button id="start-btn" class="start-button">回答を始める</button>
+    </div>
+  </div>
+  <div class="keyboard-global-effect" id="globalEffectLayer"></div>
+  <div class="desktop" id="desktop">
+    <div id="desktop-icons"></div>
+    <form id="surveyForm" autocomplete="off">
+
+      <div class="window" id="window-email" style="display: none; top: 20px; left: 20px; width: 350px; z-index: 6;" data-title="メールアドレス">
+        <div class="title-bar">
+          <span class="title-bar-text">VRChat 評価アンケート</span>
+          <button type="button" class="window-close-btn" aria-label="閉じる">×</button>
+        </div>
+        <div class="window-body">
+          <p style="margin-top: 0; margin-bottom: 12px; font-size: 0.95rem;">アンケートの送信に必要なメールアドレスを入力してください。</p>
+          <div class="field">
+            <label for="email">メールアドレス</label>
+            <input type="email" id="email" name="email" placeholder="" required autocomplete="off" />
+          </div>
+        </div>
+      </div>
+
+      <div class="window" id="window-name" style="display: none; top: 60px; left: 60px; width: 540px; z-index: 5;" data-title="名前">
+        <div class="title-bar">
+          <span class="title-bar-text">名前</span>
+          <button type="button" class="window-close-btn" aria-label="閉じる">×</button>
+        </div>
+        <div class="window-body">
+          <p style="margin-top: 0; margin-bottom: 12px; font-size: 0.95rem;">あなたのお名前を入力してください。</p>
+          <div class="field">
+            <label for="name">名前</label>
+            <input type="text" id="name" name="name" placeholder="" required readonly autocomplete="off" />
+            <div class="keyboard-panel" id="keyboardPanel">
+              <div class="keyboard-info">
+                <span id="pageRangeLabel">U+0000〜U+0077</span>
+                <span id="pageLabel">ページ 1 / 19858</span>
+              </div>
+              <div class="keyboard-effect-layer"></div>
+              <div class="keyboard-controls">
+                <div class="keyboard-row">
+                  <button type="button" class="key-action" id="prevPage">前のページ</button>
+                  <select id="pageSelect" aria-label="ページ番号"></select>
+                  <button type="button" class="key-action" id="nextPage">次のページ</button>
+                </div>
+                <div class="keyboard-row search">
+                  <input type="search" id="unicodeSearch" placeholder="Unicode検索: 文字 or U+1F60A" aria-label="Unicode検索" />
+                  <button type="button" class="key-action" id="unicodeSearchBtn">検索</button>
+                  <button type="button" class="key-action" id="clearSearch">クリア</button>
+                </div>
+                <div class="keyboard-row search-result">
+                  <span id="searchResultLabel"></span>
+                </div>
+                <div class="keyboard-row actions">
+                  <button type="button" class="key-action" id="backspace">バックスペース</button>
+                  <button type="button" class="key-action" id="clearInput">クリア</button>
+                </div>
+              </div>
+              <div class="keys-grid" id="keysGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="window" id="window-q1" style="display: none;" data-title="1. 総合満足度" data-initial-top="100px" data-initial-left="100px" data-width="450px">
+        <div class="title-bar">
+          <span class="title-bar-text">1. VRChatの総合満足度</span>
+          <button type="button" class="window-close-btn" aria-label="閉じる">×</button>
+        </div>
+        <div class="window-body">
+          <div class="field">
+            <label for="q1">1. VRChatの総合満足度を教えてください</label>
+            <div class="slider-row">
+              <div class="scale-labels">
+                <span>不満</span>
+                <span>やや不満</span>
+                <span>やや満足</span>
+                <span>満足</span>
+              </div>
+                  <div class="range-wrapper physics-range-wrapper">
+                <input type="range" id="q1" name="q1" min="0" max="100" value="75" required class="physics-hidden-range" />
+                <div class="physics-slider" id="q1Physics" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="75" aria-label="VRChat総合満足度">
+                  <div class="physics-fill"></div>
+                  <div class="charge-bar" id="q1ChargeBar"></div>
+                  <div class="physics-handle"></div>
+                </div>
+                <div class="slider-status"><span class="score" id="q1Text">満足</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="window" id="window-q2" style="display: none;" data-title="2. 交流体験" data-initial-top="140px" data-initial-left="140px" data-width="450px">
+        <div class="title-bar">
+          <span class="title-bar-text">2. VRChatでの交流体験</span>
+          <button type="button" class="window-close-btn" aria-label="閉じる">×</button>
+        </div>
+        <div class="window-body">
+          <div class="field">
+            <label for="q2">2. VRChatでの交流体験はいかがでしたか？</label>
+            <div class="slider-row" id="q2DummySlider">
+              <div class="scale-labels">
+                <span>不満</span>
+                <span>やや不満</span>
+                <span>やや満足</span>
+                <span>満足</span>
+              </div>
+              <div class="range-wrapper physics-range-wrapper">
+                <div class="physics-slider">
+                  <div class="physics-fill" id="q2DummyFill" style="width: 50%;"></div>
+                  <div class="physics-handle" id="q2DummyHandle" style="left: 50%;"></div>
+                </div>
+                <div class="slider-status"><span class="score" id="q2DummyScore">やや満足</span></div>
+              </div>
+            </div>
+            <div class="q2-options-container" id="q2Container">
+              <input type="number" id="q2" name="q2" min="0" max="100" style="position:absolute; opacity:0.01; width:1px; height:1px; pointer-events:none;" required />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="window" id="window-q3" style="display: none;" data-title="3. 操作性" data-initial-top="180px" data-initial-left="180px" data-width="450px">
+        <div class="title-bar">
+          <span class="title-bar-text">3. VRChatの操作性や使いやすさ</span>
+          <button type="button" class="window-close-btn" aria-label="閉じる">×</button>
+        </div>
+        <div class="window-body">
+          <div class="field">
+            <label for="q3">3. VRChatの操作性や使いやすさはどうでしたか？</label>
+            <div class="slider-row" id="q3DummySlider">
+              <div class="scale-labels">
+                <span>不満</span>
+                <span>やや不満</span>
+                <span>やや満足</span>
+                <span>満足</span>
+              </div>
+              <div class="range-wrapper physics-range-wrapper">
+                <div class="physics-slider">
+                  <div class="physics-fill" id="q3DummyFill" style="width: 50%;"></div>
+                  <div class="physics-handle" id="q3DummyHandle" style="left: 50%;"></div>
+                </div>
+                <div class="slider-status"><span class="score" id="q3DummyScore">やや満足</span></div>
+              </div>
+            </div>
+            <div class="q3-chaos-container" id="q3Container"></div>
+            <div style="text-align: center; margin-top: 8px;">
+              <button type="button" id="airBlowBtn" style="display: none; padding: 4px 12px; font-size: 0.9rem;">空気を吹く</button>
+            </div>
+            <input type="number" id="q3" name="q3" min="1" max="100" style="position:absolute; opacity:0.01; width:1px; height:1px; pointer-events:none;" required />
+          </div>
+        </div>
+      </div>
+
+      <div class="window" id="window-feedback" style="display: none;" data-title="4. ご意見" data-initial-top="220px" data-initial-left="220px" data-width="450px">
+        <div class="title-bar">
+          <span class="title-bar-text">4. 改善してほしい点やご意見</span>
+          <button type="button" class="window-close-btn" aria-label="閉じる">×</button>
+        </div>
+        <div class="window-body">
+          <div class="field">
+            <label for="feedback">4. 改善してほしい点やご意見を自由にご記入ください</label>
+            <textarea id="feedback" name="feedback" placeholder="ご意見をお聞かせください..." required></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="window" id="window-submit" style="display: none;" data-title="送信" data-initial-top="450px" data-initial-left="20px" data-width="400px">
+        <div class="title-bar">
+          <span class="title-bar-text">フォームの送信</span>
+          <button type="button" class="window-close-btn" aria-label="閉じる">×</button>
+        </div>
+        <div class="window-body">
+          <div class="air-pump-container">
+            <button type="button" id="airSubmitBtn" class="pump-btn" aria-label="空気を送る（連打）">
+              <svg id="pumpIcon" class="pump-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 65 85 Q 90 85 90 65" fill="none" stroke="#a3be8c" stroke-width="6" stroke-linecap="round" />
+                <rect x="35" y="35" width="30" height="60" rx="4" fill="#3b4252" stroke="#88c0d0" stroke-width="4" />
+                <rect x="20" y="90" width="60" height="8" rx="3" fill="#81a1c1" />
+                <g class="pump-handle">
+                  <rect x="46" y="5" width="8" height="40" fill="#eceff4" />
+                  <rect x="25" y="0" width="50" height="12" rx="6" fill="#bf616a" />
+                </g>
+              </svg>
+            </button>
+            <div class="air-gauge" id="airGauge">
+              <div class="air-fill" id="airFill"></div>
+              <span class="air-text" id="airText">送信</span>
+            </div>
+          </div>
+          <div class="notice" id="successNotice">送信されました。</div>
+        </div>
+      </div>
+    </form>
+    <div class="window" id="window-video" style="display: none;" data-title="ヘルプ" data-icon="https://win98icons.alexmeub.com/icons/png/help_question_mark-0.png"></div>
+    <div class="window" id="window-settings" style="display: none;" data-title="ユーティリティ" data-initial-top="500px" data-initial-left="450px" data-width="200px">
+      <div class="title-bar">
+        <span class="title-bar-text">ユーティリティ</span>
+        <button type="button" class="window-close-btn" aria-label="閉じる">×</button>
+      </div>
+      <div class="window-body">
+        <button type="button" class="settings-trigger" id="settingsTrigger">ページ設定</button>
+      </div>
+    </div>
+
+  </div>
+    <div class="modal-overlay" id="submissionModal" aria-hidden="true">
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-header">
+          <h2 id="modalTitle">送信内容の確認</h2>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-footer" id="modalFooter"></div>
+      </div>
+    </div>
+    <div class="settings-overlay" id="settingsOverlay" aria-hidden="true">
+      <div class="settings-popup" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <header>
+          <h2 id="settingsTitle">ページ設定</h2>
+          <button type="button" class="close-settings" id="closeSettings" aria-label="設定を閉じる">×</button>
+        </header>
+        <div class="settings-row">
+          <label>
+            <input type="checkbox" id="customFontToggle" checked />
+            カスタムフォントを使用 (esenapaj)
+          </label>
+          <p class="help-text">オフにすると、通常のフォントに切り替わります。</p>
+        </div>
+        <div class="settings-row">
+          <label>
+            <input type="checkbox" id="autoPageSearchToggle" />
+            検索で自動ページ移動
+          </label>
+          <p class="help-text">検索した文字が含まれるページへ自動的に切り替えます。デフォルトではオフです。</p>
+        </div>
+        <div class="settings-row">
+          <label>
+            <input type="checkbox" id="sanitizeToggle" />
+            ページを消毒
+          </label>
+          <p class="help-text">オンにすると、フィードバック欄の文字が腐敗しなくなります。</p>
+        </div>
+      </div>
+    </div>
+
+  <div id="start-menu" class="window" style="display:none; position:fixed; bottom:48px; left:0; width:200px; height:auto; z-index:2000; flex-direction:row; padding:2px; margin: 0; box-sizing: border-box;">
+    <div style="background: linear-gradient(180deg, #000080 0%, #000050 100%); color:white; font-weight:bold; padding:4px 8px; writing-mode: vertical-rl; transform: rotate(180deg); display:flex; align-items:center; letter-spacing: 2px;">
+      VRChat 評価アンケート
+    </div>
+    <div style="flex-grow:1; display:flex; flex-direction:column; background:#c0c0c0; padding: 2px;">
+      <div style="padding: 10px; cursor: pointer; border: 1px solid transparent; font-size: 0.9rem;" onmouseover="this.style.background='#000080'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='black';" onclick="showMsgBox('プログラムは存在しません')"><u>P</u>rograms</div>
+      <div style="padding: 10px; cursor: pointer; border: 1px solid transparent; font-size: 0.9rem;" onmouseover="this.style.background='#000080'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='black';" onclick="showMsgBox('設定できません')"><u>S</u>ettings</div>
+      <div style="padding: 10px; cursor: pointer; border: 1px solid transparent; font-size: 0.9rem;" onmouseover="this.style.background='#000080'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='black';" onclick="showMsgBox('検索できません')"><u>F</u>ind</div>
+      <hr style="margin: 4px 0; border: 1px inset #fff; width: 100%; box-sizing: border-box;">
+      <div style="padding: 10px; cursor: pointer; border: 1px solid transparent; font-size: 0.9rem;" onmouseover="this.style.background='#000080'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='black';" onclick="showMsgBox('シャットダウンは許可されていません')">Sh<u>u</u>t Down...</div>
+    </div>
+  </div>
+
+  <div id="taskbar">
+    <button id="start-button" class="taskbar-item" style="font-weight:bold; margin-right:8px; display:flex; align-items:center; gap:6px; padding: 4px 8px;">
+      <span style="font-size:16px; line-height:1; display:inline-block;">🐶</span>
+      <span style="line-height:1;">スタート</span>
+    </button>
+    <div id="taskbar-items"></div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var startBtn = document.getElementById("start-btn");
+      var startScreen = document.getElementById("start-screen");
+      var glitchOverlay = document.getElementById("glitch-overlay");
+      
+      var stamina = 3.0; // Increased stamina (lasts longer)
+      var posX = 0;
+      var posY = 0;
+      var isRunawayActive = true;
+      var hasTriggeredOnce = false;
+      var lastMoveTime = 0;
+
+      // Smooth runaway logic (Exaggerated)
+      document.addEventListener("mousemove", function(e) {
+        if (!isRunawayActive || !startBtn || startScreen.classList.contains("hidden")) return;
+
+        var btnRect = startBtn.getBoundingClientRect();
+
+        // First trigger check: mouse must overlap button
+        if (!hasTriggeredOnce) {
+          if (e.clientX >= btnRect.left && e.clientX <= btnRect.right &&
+              e.clientY >= btnRect.top && e.clientY <= btnRect.bottom) {
+            hasTriggeredOnce = true;
+          } else {
+            return; // Don't move yet
+          }
+        }
+
+        var btnCenterX = btnRect.left + btnRect.width / 2;
+        var btnCenterY = btnRect.top + btnRect.height / 2;
+
+        var dx = e.clientX - btnCenterX;
+        var dy = e.clientY - btnCenterY;
+        var distance = Math.sqrt(dx*dx + dy*dy);
+
+        // Interaction radius (Larger)
+        var radius = 250;
+
+        if (distance < radius && stamina > 0) {
+          lastMoveTime = Date.now();
+          // Calculate push vector (Aggressive force)
+          var force = (1 - distance / radius) * 60 * Math.min(1.5, stamina);
+          var angle = Math.atan2(dy, dx);
+          
+          // Move away from mouse
+          posX -= Math.cos(angle) * force;
+          posY -= Math.sin(angle) * force;
+
+          // Boundary constraints with bounce effect logic
+          var margin = 30;
+          if (btnRect.left + posX < margin) {
+            posX = margin - btnRect.left;
+          }
+          if (btnRect.right + posX > window.innerWidth - margin) {
+            posX = window.innerWidth - margin - btnRect.right;
+          }
+          if (btnRect.top + posY < margin) {
+            posY = margin - btnRect.top;
+          }
+          if (btnRect.bottom + posY > window.innerHeight - margin) {
+            posY = window.innerHeight - margin - btnRect.bottom;
+          }
+
+          startBtn.style.transform = `translate(${posX}px, ${posY}px)`;
+          
+          // Consume stamina slower
+          stamina -= 0.005; 
+          
+          if (stamina <= 0) {
+            stamina = 0;
+            isRunawayActive = false;
+          }
+        }
+      });
+
+      if (startBtn) {
+        startBtn.addEventListener("click", function() {
+          // Prevent clicking if currently moving or just moved
+          if (Date.now() - lastMoveTime < 150) return;
+
+          // 1. Initial fade out of the "normal" screen
+          startScreen.classList.add("hidden");
+          
+          setTimeout(function() {
+            startScreen.style.display = "none";
+            
+            // 2. Show glitch overlay
+            glitchOverlay.style.display = "block";
+            
+            var glitchLines = [
+              "INITIALIZING SYSTEM...",
+              "LOADING CORE MODULES...",
+              "ERROR: UNEXPECTED UI PROTOCOL DETECTED",
+              "BYPASSING SAFETY LIMITS...",
+              "INJECTING CRAP_UI.DLL...",
+              "SYSTEM REBOOT IN PROGRESS...",
+              "3...", "2...", "1...",
+              "WELCOME TO DESKTOP"
+            ];
+            
+            var lineIdx = 0;
+            var interval = setInterval(function() {
+              if (lineIdx < glitchLines.length) {
+                var p = document.createElement("div");
+                p.textContent = "> " + glitchLines[lineIdx];
+                glitchOverlay.appendChild(p);
+                lineIdx++;
+              } else {
+                clearInterval(interval);
+                setTimeout(function() {
+                  glitchOverlay.style.display = "none";
+                  // Reveal desktop and set teal background
+                  document.body.style.background = "#008080";
+                  document.getElementById("desktop").style.display = "block";
+                  document.getElementById("taskbar").style.display = "flex";
+                }, 500);
+              }
+            }, 100);
+
+          }, 500);
+        });
+      }
+    });
+
+    window.showMsgBox = function(msg) {
+      var box = document.getElementById("msg-box");
+      if (!box) {
+        box = document.createElement("div");
+        box.id = "msg-box";
+        box.className = "window";
+        box.style.display = "flex";
+        box.style.position = "fixed";
+        box.style.top = "50%";
+        box.style.left = "50%";
+        box.style.transform = "translate(-50%, -50%)";
+        box.style.width = "280px";
+        box.style.zIndex = "9999";
+        box.innerHTML = `
+          <div class="title-bar" style="cursor: default;">
+            <span class="title-bar-text">メッセージ</span>
+            <button class="window-close-btn" onclick="document.getElementById('msg-box').style.display='none'">×</button>
+          </div>
+          <div class="window-body" style="text-align: center; padding: 20px;">
+            <p id="msg-box-text" style="margin: 0 0 20px 0; font-size: 0.95rem; font-weight: normal; color: #000;"></p>
+            <button onclick="document.getElementById('msg-box').style.display='none'" style="min-width: 80px; padding: 4px 12px; font-weight: bold;">OK</button>
+          </div>
+        `;
+        document.body.appendChild(box);
+      }
+      document.getElementById("msg-box-text").textContent = msg;
+      box.style.display = "flex";
+      var startMenu = document.getElementById("start-menu");
+      var startBtn = document.getElementById("start-button");
+      if (startMenu) startMenu.style.display = "none";
+      if (startBtn) startBtn.classList.remove("active");
+    };
+
+    (function () {
+      var nameInput = document.getElementById("name");
+      var keysGrid = document.getElementById("keysGrid");
+      var prevPage = document.getElementById("prevPage");
+      var nextPage = document.getElementById("nextPage");
+      var backspace = document.getElementById("backspace");
+      var clearInput = document.getElementById("clearInput");
+      var pageLabel = document.getElementById("pageLabel");
+      var pageRangeLabel = document.getElementById("pageRangeLabel");
+      var pageSelect = document.getElementById("pageSelect");
+      var unicodeSearch = document.getElementById("unicodeSearch");
+      var unicodeSearchBtn = document.getElementById("unicodeSearchBtn");
+      var clearSearch = document.getElementById("clearSearch");
+      var searchResultLabel = document.getElementById("searchResultLabel");
+      var settingsTrigger = document.getElementById("settingsTrigger");
+      var settingsOverlay = document.getElementById("settingsOverlay");
+      var closeSettings = document.getElementById("closeSettings");
+      var autoPageSearchToggle = document.getElementById("autoPageSearchToggle");
+      var sanitizeToggle = document.getElementById("sanitizeToggle");
+      var customFontToggle = document.getElementById("customFontToggle");
+
+      // Initialize custom font
+      if (customFontToggle && customFontToggle.checked) {
+        document.body.classList.add("custom-font");
+      }
+
+      var emailInput = document.getElementById("email");
+
+      var pageSize = 56;
+      var surrogateStart = 0xD800;
+      var surrogateEnd = 0xDFFF;
+      var totalCodePoints = 0x110000 - (surrogateEnd - surrogateStart + 1);
+      var pageCount = Math.ceil(totalCodePoints / pageSize);
+      var currentPage = 0;
+      var highlightedCode = null;
+      var autoPageSearch = false; // hidden setting, default off
+      var isSanitized = false;
+
+      function indexToCodePoint(index) {
+        var code = index;
+        if (code >= surrogateStart) {
+          code += surrogateEnd - surrogateStart + 1;
+        }
+        return code;
+      }
+
+      function codePointToIndex(code) {
+        if (code >= surrogateStart && code <= surrogateEnd) {
+          return null;
+        }
+        if (code > surrogateEnd) {
+          code -= surrogateEnd - surrogateStart + 1;
+        }
+        return code;
+      }
+
+      function setSearchResult(message, isError) {
+        searchResultLabel.textContent = message;
+        searchResultLabel.style.color = isError ? "#bf616a" : "#a3be8c";
+      }
+
+      function findCodePointFromQuery(query) {
+        var normalized = query.trim();
+        if (!normalized) {
+          return null;
+        }
+
+        var hexMatch = normalized.match(/^(?:U\+)?([0-9A-Fa-f]{1,6})$/);
+        if (hexMatch) {
+          var code = parseInt(hexMatch[1], 16);
+          if (code <= 0x10FFFF && (code < surrogateStart || code > surrogateEnd)) {
+            return code;
+          }
+          return null;
+        }
+
+        var searchLower = normalized.toLowerCase();
+        for (var i = 0; i < totalCodePoints; i++) {
+          var code = indexToCodePoint(i);
+          var char = String.fromCodePoint(code);
+          if (char.toLowerCase().includes(searchLower) || code.toString(16).toLowerCase().includes(searchLower)) {
+            return code;
+          }
+        }
+
+        return null;
+      }
+
+      function formatChar(code) {
+        var char = String.fromCodePoint(code);
+        if (code === 0x0020) {
+          return "␣";
+        }
+        return char;
+      }
+
+      function formatRange(pageIndex) {
+        var startIndex = pageIndex * pageSize;
+        var endIndex = Math.min(totalCodePoints, startIndex + pageSize) - 1;
+        var start = indexToCodePoint(startIndex);
+        var end = indexToCodePoint(endIndex);
+        return "U+" + start.toString(16).toUpperCase().padStart(4, "0") + "〜U+" + end.toString(16).toUpperCase().padStart(4, "0");
+      }
+
+      function populatePageSelect() {
+        var fragment = document.createDocumentFragment();
+        for (var i = 0; i < pageCount; i++) {
+          var option = document.createElement("option");
+          option.value = String(i + 1);
+          option.textContent = String(i + 1);
+          fragment.appendChild(option);
+        }
+        pageSelect.appendChild(fragment);
+      }
+
+      function renderPage() {
+        keysGrid.innerHTML = "";
+        var startIndex = currentPage * pageSize;
+        var endIndex = Math.min(totalCodePoints, startIndex + pageSize);
+        for (var i = startIndex; i < endIndex; i++) {
+          var code = indexToCodePoint(i);
+          var button = document.createElement("button");
+          button.type = "button";
+          button.className = "key-button";
+          if (highlightedCode === code) {
+            button.classList.add("highlight");
+          }
+          button.dataset.code = code;
+          button.innerHTML = "<span>" + formatChar(code) + "</span><small>U+" + code.toString(16).toUpperCase().padStart(4, "0") + "</small>";
+          button.addEventListener("click", function (event) {
+            var char = String.fromCodePoint(Number(event.currentTarget.dataset.code));
+            nameInput.value += char;
+            animateKeyPress(event.currentTarget, char);
+          });
+          keysGrid.appendChild(button);
+        }
+
+        pageLabel.textContent = "ページ " + (currentPage + 1) + " / " + pageCount;
+        pageRangeLabel.textContent = formatRange(currentPage);
+        prevPage.disabled = currentPage === 0;
+        nextPage.disabled = currentPage === pageCount - 1;
+        pageSelect.value = String(currentPage + 1);
+      }
+
+      prevPage.addEventListener("click", function () {
+        if (currentPage > 0) {
+          currentPage -= 1;
+          renderPage();
+        }
+      });
+
+      nextPage.addEventListener("click", function () {
+        if (currentPage < pageCount - 1) {
+          currentPage += 1;
+          renderPage();
+        }
+      });
+
+      pageSelect.addEventListener("change", function () {
+        currentPage = Number(pageSelect.value) - 1;
+        renderPage();
+      });
+
+      function goToCodePoint(code) {
+        var index = codePointToIndex(code);
+        if (index === null) {
+          return false;
+        }
+        currentPage = Math.floor(index / pageSize);
+        highlightedCode = code;
+        renderPage();
+        return true;
+      }
+
+      function searchUnicode() {
+        var query = unicodeSearch.value.trim();
+        if (!query) {
+          setSearchResult("検索文字列を入力してください。", true);
+          return;
+        }
+        var result = findCodePointFromQuery(query);
+        if (result === null) {
+          highlightedCode = null;
+          setSearchResult("該当するUnicode文字が見つかりませんでした。", true);
+          renderPage();
+          return;
+        }
+
+        highlightedCode = result;
+        if (autoPageSearch) {
+          if (!goToCodePoint(result)) {
+            setSearchResult("そのコードポイントは検索できません。", true);
+            return;
+          }
+          setSearchResult("見つかりました: U+" + result.toString(16).toUpperCase().padStart(4, "0") + " → " + formatChar(result), false);
+          return;
+        }
+
+        renderPage();
+        var codeIndex = codePointToIndex(result);
+        var codeInPage = codeIndex !== null && Math.floor(codeIndex / pageSize) === currentPage;
+        if (codeInPage) {
+          setSearchResult("見つかりました: U+" + result.toString(16).toUpperCase().padStart(4, "0") + " → " + formatChar(result), false);
+        } else {
+          setSearchResult("見つかりました: U+" + result.toString(16).toUpperCase().padStart(4, "0") + " → " + formatChar(result) + " （現在のページには含まれていません）", false);
+        }
+      }
+
+      unicodeSearchBtn.addEventListener("click", searchUnicode);
+      clearSearch.addEventListener("click", function () {
+        unicodeSearch.value = "";
+        highlightedCode = null;
+        setSearchResult("");
+        renderPage();
+      });
+
+      settingsTrigger.addEventListener("click", function () {
+        settingsOverlay.classList.add("show");
+        settingsOverlay.setAttribute("aria-hidden", "false");
+      });
+
+      closeSettings.addEventListener("click", function () {
+        settingsOverlay.classList.remove("show");
+        settingsOverlay.setAttribute("aria-hidden", "true");
+      });
+
+      settingsOverlay.addEventListener("click", function (event) {
+        if (event.target === settingsOverlay) {
+          settingsOverlay.classList.remove("show");
+          settingsOverlay.setAttribute("aria-hidden", "true");
+        }
+      });
+
+      autoPageSearchToggle.addEventListener("change", function () {
+        autoPageSearch = autoPageSearchToggle.checked;
+        setSearchResult("自動ページ移動は " + (autoPageSearch ? "ON" : "OFF") + " です。", false);
+      });
+
+      sanitizeToggle.addEventListener("change", function () {
+        isSanitized = sanitizeToggle.checked;
+      });
+
+      customFontToggle.addEventListener("change", function () {
+        if (customFontToggle.checked) {
+          document.body.classList.add("custom-font");
+        } else {
+          document.body.classList.remove("custom-font");
+        }
+      });
+
+      unicodeSearch.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          searchUnicode();
+          return;
+        }
+      });
+
+      backspace.addEventListener("click", function () {
+        nameInput.value = nameInput.value.slice(0, -1);
+      });
+
+      clearInput.addEventListener("click", function () {
+        nameInput.value = "";
+      });
+
+      nameInput.addEventListener("keydown", function (event) {
+        event.preventDefault();
+      });
+
+      nameInput.addEventListener("paste", function (event) {
+        event.preventDefault();
+      });
+
+      emailInput.addEventListener("keydown", function(event) {
+        if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          event.preventDefault();
+          var char = event.key;
+          var delay = 100 + Math.random() * 400; // 0.3秒〜1.8秒のランダム遅延
+          setTimeout(function() {
+            emailInput.value += char;
+          }, delay);
+        }
+      });
+
+      emailInput.addEventListener("paste", function (event) {
+        event.preventDefault();
+        alert("甘えは許されません。手入力してください。");
+      });
+
+      function getSliderLabel(value) {
+        value = Number(value);
+        if (value < 25) {
+          return "不満";
+        } else if (value < 50) {
+          return "やや不満";
+        } else if (value < 75) {
+          return "やや満足";
+        }
+        return "満足";
+      }
+
+      function updateSliderLabel(rangeInput, labelOutput) {
+        labelOutput.textContent = getSliderLabel(rangeInput.value);
+      }
+
+      [
+        { id: "q1", labelId: "q1Text" }
+      ].forEach(function (config) {
+        var rangeInput = document.getElementById(config.id);
+        var labelOutput = document.getElementById(config.labelId);
+        if (!rangeInput || !labelOutput) return;
+        updateSliderLabel(rangeInput, labelOutput);
+        rangeInput.addEventListener("input", function () {
+          updateSliderLabel(rangeInput, labelOutput);
+        });
+      });
+
+      var q1Hidden = document.getElementById("q1");
+      var q1Physics = document.getElementById("q1Physics");
+      var q1ChargeBar = document.getElementById("q1ChargeBar");
+      var q1State = {
+        value: 75,
+        velocity: 0,
+        pointerDown: false,
+        lastX: 0,
+        lastT: 0,
+        pressStart: 0,
+        charge: 0,
+        direction: 1,
+        animating: false,
+        frameId: null
+      };
+
+      function updatePhysicsVisuals(value) {
+        var percent = Math.min(100, Math.max(0, value));
+        q1Physics.querySelector(".physics-fill").style.width = percent + "%";
+        q1Physics.querySelector(".physics-handle").style.left = percent + "%";
+        q1Physics.setAttribute("aria-valuenow", String(Math.round(percent)));
+        q1Hidden.setAttribute("aria-valuenow", String(percent));
+        q1Hidden.value = String(Math.round(percent));
+        q1Hidden.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+
+      function setPhysicsValue(value) {
+        q1State.value = Math.min(100, Math.max(0, value));
+        updatePhysicsVisuals(q1State.value);
+      }
+
+      function animatePhysics() {
+        if (q1State.animating) return;
+        q1State.animating = true;
+        var lastTime = null;
+
+        function frame(currentTime) {
+          if (!lastTime) lastTime = currentTime;
+          var delta = (currentTime - lastTime) / 1000;
+          lastTime = currentTime;
+
+          q1State.value += q1State.velocity * delta * 40;
+          if (q1State.value <= 0 || q1State.value >= 100) {
+            if (q1State.value < 0) {
+              q1State.value = -q1State.value * 0.8;
+            } else if (q1State.value > 100) {
+              q1State.value = 100 - (q1State.value - 100) * 0.8;
+            }
+            q1State.velocity *= -0.85;
+          }
+
+          q1State.velocity *= Math.pow(0.99, delta * 60);
+          setPhysicsValue(q1State.value);
+
+          if (Math.abs(q1State.velocity) > 0.2) {
+            q1State.frameId = requestAnimationFrame(frame);
+          } else {
+            q1State.animating = false;
+            q1State.velocity = 0;
+          }
+        }
+
+        q1State.frameId = requestAnimationFrame(frame);
+      }
+
+      function pointerToValue(clientX) {
+        var rect = q1Physics.getBoundingClientRect();
+        var percent = ((clientX - rect.left) / rect.width) * 100;
+        return Math.min(100, Math.max(0, percent));
+      }
+
+      function updateCharge(event) {
+        var holdTime = Math.min(1, (event.timeStamp - q1State.pressStart) / 900);
+        q1State.charge = holdTime;
+        q1ChargeBar.style.width = (holdTime * 100) + "%";
+      }
+
+      if (q1Physics && q1Hidden) {
+        q1Physics.addEventListener("pointerdown", function (event) {
+          event.preventDefault();
+          q1State.pointerDown = true;
+          q1Physics.setPointerCapture(event.pointerId);
+          q1Physics.classList.add("charging");
+          q1State.pressStart = event.timeStamp;
+          q1State.lastX = event.clientX;
+          q1State.lastT = event.timeStamp;
+          q1State.charge = 0;
+          q1ChargeBar.style.width = "0%";
+          if (q1State.animating) {
+            cancelAnimationFrame(q1State.frameId);
+            q1State.animating = false;
+            q1State.velocity = 0;
+          }
+        });
+
+        q1Physics.addEventListener("pointermove", function (event) {
+          if (!q1State.pointerDown) return;
+          var previousX = q1State.lastX;
+          var previousT = q1State.lastT;
+          var value = pointerToValue(event.clientX);
+          setPhysicsValue(value);
+
+          var dt = event.timeStamp - previousT;
+          if (dt > 0) {
+            q1State.velocity = ((event.clientX - previousX) / dt) * 0.24;
+            q1State.direction = event.clientX >= previousX ? 1 : -1;
+          }
+          q1State.lastX = event.clientX;
+          q1State.lastT = event.timeStamp;
+          updateCharge(event);
+        });
+
+        q1Physics.addEventListener("pointerup", function (event) {
+          q1State.pointerDown = false;
+          q1Physics.releasePointerCapture(event.pointerId);
+          q1Physics.classList.remove("charging");
+          updateCharge(event);
+          var holdForce = q1State.charge * 30;
+          var flick = q1State.velocity + holdForce * q1State.direction;
+          if (Math.abs(flick) < 6) {
+            flick = 6 * q1State.direction;
+          }
+          q1State.velocity = flick;
+          q1ChargeBar.style.width = "0%";
+          animatePhysics();
+        });
+
+        q1Physics.addEventListener("pointercancel", function () {
+          q1State.pointerDown = false;
+          q1Physics.classList.remove("charging");
+          q1ChargeBar.style.width = "0%";
+          animatePhysics();
+        });
+
+        q1Physics.addEventListener("keydown", function (event) {
+          var step = 5;
+          if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+            event.preventDefault();
+            setPhysicsValue(q1State.value + step);
+          } else if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+            event.preventDefault();
+            setPhysicsValue(q1State.value - step);
+          }
+        });
+
+        setPhysicsValue(q1State.value);
+      }
+
+      function animateKeyPress(button, char) {
+        button.classList.add("flash");
+        button.addEventListener("animationend", function cleanup() {
+          button.classList.remove("flash");
+          button.removeEventListener("animationend", cleanup);
+        });
+
+        var effectLayer = document.querySelector(".keyboard-effect-layer");
+        var globalLayer = document.getElementById("globalEffectLayer");
+        if (!effectLayer || !globalLayer) return;
+
+        var rect = button.getBoundingClientRect();
+        var layerRect = effectLayer.getBoundingClientRect();
+        var originX = rect.left + rect.width / 2;
+        var originY = rect.top + rect.height / 2;
+        var screenMax = Math.max(window.innerWidth, window.innerHeight) * 1.2;
+
+        for (var i = 0; i < 100; i++) {
+          var burst = document.createElement("div");
+          burst.className = "burst";
+          burst.textContent = char === " " ? "␣" : char;
+          var size = 14 + Math.random() * 22;
+          burst.style.fontSize = Math.max(14, size * 0.9) + "px";
+          burst.style.left = originX + "px";
+          burst.style.top = originY + "px";
+          burst.style.backgroundImage = "linear-gradient(90deg, red, orange, yellow, lime, aqua, blue, magenta)";
+          burst.style.backgroundClip = "text";
+          burst.style.webkitBackgroundClip = "text";
+          burst.style.webkitTextFillColor = "transparent";
+          var dx = (Math.random() - 0.5) * screenMax + "px";
+          var dy = (Math.random() - 0.5) * screenMax + "px";
+          burst.style.setProperty("--dx", dx);
+          burst.style.setProperty("--dy", dy);
+          globalLayer.appendChild(burst);
+          burst.addEventListener("animationend", function () {
+            if (globalLayer.contains(this)) {
+              globalLayer.removeChild(this);
+            }
+          });
+        }
+
+        var localBurst = document.createElement("div");
+        localBurst.className = "burst";
+        localBurst.textContent = char === " " ? "␣" : char;
+        localBurst.style.fontSize = "28px";
+        localBurst.style.left = rect.left - layerRect.left + rect.width / 2 + "px";
+        localBurst.style.top = rect.top - layerRect.top + rect.height / 2 + "px";
+        localBurst.style.opacity = "0.9";
+        localBurst.style.backgroundImage = "linear-gradient(90deg, red, orange, yellow, lime, aqua, blue, magenta)";
+        localBurst.style.color = "transparent";
+        localBurst.style.webkitBackgroundClip = "text";
+        localBurst.style.backgroundClip = "text";
+        localBurst.style.webkitTextFillColor = "transparent";
+        effectLayer.appendChild(localBurst);
+        localBurst.addEventListener("animationend", function () {
+          if (effectLayer.contains(this)) {
+            effectLayer.removeChild(this);
+          }
+        });
+
+        var slotFlash = document.createElement("div");
+        slotFlash.className = "slot-flash";
+        globalLayer.appendChild(slotFlash);
+        slotFlash.addEventListener("animationend", function () {
+          if (globalLayer.contains(this)) {
+            globalLayer.removeChild(this);
+          }
+        });
+      }
+
+      nameInput.addEventListener("click", function () {
+        document.getElementById("keyboardPanel").classList.add("show");
+      });
+
+      var airSubmitBtn = document.getElementById("airSubmitBtn");
+      var airGauge = document.getElementById("airGauge");
+      var airFill = document.getElementById("airFill");
+      var airText = document.getElementById("airText");
+      var surveyForm = document.getElementById("surveyForm");
+
+      var airState = {
+        pressure: 0,
+        isCompleted: false,
+        lastTime: 0,
+        frameId: null
+      };
+
+      function updateAirVisuals() {
+        airFill.style.width = airState.pressure + "%";
+        if (airState.isCompleted) {
+          airText.textContent = "送信完了！";
+          airGauge.classList.add("completed");
+        } else {
+          //airText.textContent = "送信（連打で空気を送る " + Math.floor(airState.pressure) + "%）";
+          airText.textContent = "送信";
+          airGauge.classList.remove("completed");
+        }
+      }
+
+      function animateAir(currentTime) {
+        if (!airState.lastTime) airState.lastTime = currentTime;
+        var delta = (currentTime - airState.lastTime) / 1000;
+        airState.lastTime = currentTime;
+
+        if (airState.isCompleted) return;
+
+        // 時間経過で空気が抜ける
+        if (airState.pressure > 0) {
+          airState.pressure -= 25 * delta; // 1秒間に25%抜ける
+          if (airState.pressure < 0) airState.pressure = 0;
+        }
+
+        updateAirVisuals();
+
+        if (airState.pressure > 0) {
+          airState.frameId = requestAnimationFrame(animateAir);
+        } else {
+          airState.frameId = null;
+        }
+      }
+
+      function pumpAir(event) {
+        if (event) event.preventDefault();
+        if (airState.isCompleted) return;
+        
+        // アニメーション用クラスの付け外し
+        airSubmitBtn.classList.remove("pumping");
+        void airSubmitBtn.offsetWidth; // リフロー強制
+        airSubmitBtn.classList.add("pumping");
+        setTimeout(function() {
+          airSubmitBtn.classList.remove("pumping");
+        }, 80); // すぐに戻す
+        
+        // 1回のポンプで増加する量
+        airState.pressure += 8; 
+        if (airState.pressure >= 100) {
+          airState.pressure = 100;
+          airState.isCompleted = true;
+          updateAirVisuals();
+          
+          // HTML5のバリデーションをチェック
+          if (surveyForm.checkValidity()) {
+            surveyForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+          } else {
+            surveyForm.reportValidity();
+            airState.pressure = 0;
+            airState.isCompleted = false;
+            updateAirVisuals();
+          }
+          return;
+        }
+
+        updateAirVisuals();
+
+        // 減少アニメーションが止まっていれば再開
+        if (!airState.frameId && airState.pressure > 0) {
+          airState.lastTime = performance.now();
+          airState.frameId = requestAnimationFrame(animateAir);
+        }
+      }
+
+      airSubmitBtn.addEventListener("pointerdown", pumpAir);
+      airSubmitBtn.addEventListener("contextmenu", function(e) { e.preventDefault(); });
+
+      var submissionModal = document.getElementById("submissionModal");
+      var modalBody = document.getElementById("modalBody");
+      var modalFooter = document.getElementById("modalFooter");
+
+      function showModal(message) {
+        modalBody.textContent = message;
+        
+        modalFooter.innerHTML = "";
+        // 「閉じる」に近いけどちょっと違う言葉
+        var dummyTexts = ["閉鎖", "終了", "封印", "遮断"];
+        var btnCount = 5; 
+        var realIndex = Math.floor(Math.random() * btnCount);
+        
+        var dummyIdx = 0;
+        for (var i = 0; i < btnCount; i++) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          if (i === realIndex) {
+            btn.textContent = "閉じる";
+            btn.addEventListener("click", function() {
+              hideModal();
+              showStaffRoll();
+            });
+          } else {
+            btn.textContent = dummyTexts[dummyIdx++];
+            btn.addEventListener("click", function(e) {
+              e.target.style.transform = "translate(" + (Math.random() * 20 - 10) + "px, " + (Math.random() * 20 - 10) + "px)";
+              setTimeout(function() { e.target.style.transform = "none"; }, 150);
+              showMsgBox("それは「" + e.target.textContent + "」です。「閉じる」ではありません。");
+            });
+          }
+          modalFooter.appendChild(btn);
+        }
+
+        submissionModal.classList.add("show");
+        submissionModal.setAttribute("aria-hidden", "false");
+      }
+
+      function hideModal() {
+        submissionModal.classList.remove("show");
+        submissionModal.setAttribute("aria-hidden", "true");
+      }
+
+      function showStaffRoll() {
+        var staffRollOverlay = document.getElementById("staffRollOverlay");
+        if (staffRollOverlay) {
+          staffRollOverlay.classList.add("show");
+          
+          var content = staffRollOverlay.querySelector('.staff-roll-content');
+          // アニメーションが終了したら非表示にする
+          content.addEventListener('animationend', function() {
+            staffRollOverlay.classList.remove('show');
+            // 再生のためにアニメーションをリセット
+            content.style.animation = 'none';
+            void content.offsetWidth; /* trigger reflow */
+            content.style.animation = null; 
+          }, { once: true });
+        }
+      }
+
+      document.getElementById("surveyForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var notice = document.getElementById("successNotice");
+        notice.style.display = "block";
+
+        var name = document.getElementById("name").value.trim();
+        var email = document.getElementById("email").value.trim();
+        var q1 = getSliderLabel(document.getElementById("q1").value);
+        var q2 = getSliderLabel(document.getElementById("q2").value);
+        var q3 = getSliderLabel(document.getElementById("q3").value);
+        var feedback = document.getElementById("feedback").value.trim();
+
+        var message = "送信内容:\n" +
+          "名前: " + name + "\n" +
+          "メールアドレス: " + email + "\n" +
+          "1. 総合満足度: " + q1 + "\n" +
+          "2. 交流体験: " + q2 + "\n" +
+          "3. 操作性: " + q3 + "\n" +
+          "4. ご意見: " + feedback;
+
+        showModal(message);
+        this.reset();
+        
+        // 送信後に空気ボタンの状態をリセット
+        airState.pressure = 0;
+        airState.isCompleted = false;
+        updateAirVisuals();
+      });
+
+      submissionModal.addEventListener("click", function (event) {
+        if (event.target === submissionModal) {
+          alert("背景のオーバーレイをクリックしても閉じられません。\n正規の「閉じる」ボタンを探してください。");
+        }
+      });
+
+      // ダミースライダーのクリックで本性を現す
+      var q2DummySlider = document.getElementById("q2DummySlider");
+      var q2Container = document.getElementById("q2Container");
+      if (q2DummySlider && q2Container) {
+        q2DummySlider.addEventListener("click", function() {
+          q2Container.classList.add("show");
+        });
+      }
+
+      var q3DummySlider = document.getElementById("q3DummySlider");
+      var q3Container = document.getElementById("q3Container");
+      var airBlowBtn = document.getElementById("airBlowBtn");
+      if (q3DummySlider && q3Container) {
+        q3DummySlider.addEventListener("click", function() {
+          q3Container.classList.add("show");
+          if (airBlowBtn) airBlowBtn.style.display = "inline-block";
+        });
+      }
+
+      // Air Blow Button logic
+      if (airBlowBtn && q3Container) {
+        airBlowBtn.addEventListener("click", function() {
+          var wrappers = Array.from(q3Container.querySelectorAll(".chaos-radio-wrapper"));
+          
+          // Move to random positions
+          wrappers.forEach(function(wrapper) {
+            var targetX = (5 + Math.random() * 90) + "%";
+            var targetY = (5 + Math.random() * 90) + "%";
+            wrapper.style.transition = "left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)";
+            wrapper.style.left = targetX;
+            wrapper.style.top = targetY;
+          });
+
+          // Swap values (shuffle labels and values)
+          var values = wrappers.map(w => w.querySelector("input").value);
+          for (let i = values.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [values[i], values[j]] = [values[j], values[i]];
+          }
+
+          wrappers.forEach((wrapper, i) => {
+            var radio = wrapper.querySelector("input");
+            var label = wrapper.querySelector("span");
+            var wasChecked = radio.checked;
+            radio.value = values[i];
+            label.textContent = values[i];
+            
+            // If it was checked, we need to update the main input because the value changed
+            if (wasChecked) {
+              q3Input.value = radio.value;
+              updateDummySlider("q3DummyFill", "q3DummyHandle", "q3DummyScore", radio.value);
+            }
+          });
+        });
+      }
+
+      // ダミースライダーの表示を更新する関数
+      function updateDummySlider(fillId, handleId, scoreId, value) {
+        var fill = document.getElementById(fillId);
+        var handle = document.getElementById(handleId);
+        var score = document.getElementById(scoreId);
+        var percent = Math.min(100, Math.max(0, value || 0));
+        if (fill) fill.style.width = percent + "%";
+        if (handle) handle.style.left = percent + "%";
+        if (score) score.textContent = getSliderLabel(percent);
+      }
+
+      // Q2: 大量の選択肢
+      var q2Input = document.getElementById("q2");
+      if (q2Container) {
+        const q2Options = [
+          { text: "おおむね満足。色々な人と話せて楽しい。", value: 85 },
+          { text: "可もなく不可もなくだが、少し孤独を感じる時がある。", value: 45 },
+          { text: "可もなく不可もなくだが、ポジティブな体験の方が多い。", value: 60 },
+          { text: "苦痛。もう人と話したくない。", value: 5 },
+          { text: "結構な不満。ハラスメントに近い行為を見かけた。", value: 20 },
+          { text: "言語化しがたいが、なんとなく居心地が悪い。", value: 10 },
+          { text: "交流はさておき、ワールドは綺麗。", value: 28 },
+          { text: "コミュニケーション能力が試されている気がする。", value: 26 },
+          { text: "人生が変わった。VRChatは第二の故郷。", value: 100 },
+          { text: "存在自体が地獄。", value: 0 },
+          { text: "たくさんの素敵な出会いがあった。", value: 92 },
+          { text: "どちらかといえば不満。なかなか会話の輪に入れない。", value: 40 },
+          { text: "どちらかといえば満足。一人でも楽しいが、話せるともっと良い。", value: 70 },
+          { text: "時々、少し嫌な思いをすることがある。", value: 35 },
+          { text: "ニュートラル。良くも悪くもない。", value: 50 },
+          { text: "非常に不満。嫌な体験が心に残っている。", value: 15 },
+          { text: "非常に満足。イベントや集会がいつも楽しみ。", value: 95 },
+          { text: "不満。ほとんど会話できずに終わることが多い。", value: 25 },
+          { text: "普通。特に交流せず、一人で過ごすことが多い。", value: 55 },
+          { text: "まあまあ満足。ワールド巡り中に話すのが良い。", value: 80 },
+          { text: "毎日が刺激的で、最高のフレンドに恵まれた。", value: 98 },
+          { text: "満足。気の合う仲間と過ごす時間が好き。", value: 88 },
+          { text: "満足と評価するには、もう少し勇気が必要かもしれない。", value: 65 },
+          { text: "やや不満。人が多いと疲れてしまう。", value: 30 },
+          { text: "やや満足。たまに良い出会いがある。", value: 75 },
+          { text: "論外。人間不信になりそう。", value: 2 },
+        ];
+
+        q2Options.forEach(option => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "q2-option-btn";
+          btn.textContent = option.text;
+          btn.dataset.value = option.value;
+          btn.addEventListener("click", function(e) {
+            q2Container.querySelectorAll('.q2-option-btn.selected').forEach(selectedBtn => {
+              selectedBtn.classList.remove('selected');
+            });
+            e.currentTarget.classList.add('selected');
+            const value = e.currentTarget.dataset.value;
+            q2Input.value = value;
+            updateDummySlider("q2DummyFill", "q2DummyHandle", "q2DummyScore", value);
+          });
+          q2Container.appendChild(btn);
+        });
+      }
+
+      // Q3: 100個のランダム配置ラジオボタン
+      var q3Input = document.getElementById("q3");
+      if (q3Container) {
+        for (var i = 1; i <= 100; i++) {
+          var wrapper = document.createElement("label");
+          wrapper.className = "chaos-radio-wrapper";
+          wrapper.style.left = (5 + Math.random() * 90) + "%";
+          wrapper.style.top = (5 + Math.random() * 90) + "%";
+          wrapper.style.zIndex = Math.floor(Math.random() * 100);
+          
+          var rb = document.createElement("input");
+          rb.type = "radio";
+          rb.name = "q3_chaos";
+          rb.value = i;
+          rb.addEventListener("change", function(e) {
+            q3Input.value = e.target.value;
+            updateDummySlider("q3DummyFill", "q3DummyHandle", "q3DummyScore", e.target.value);
+          });
+          var lbl = document.createElement("span");
+          lbl.textContent = i;
+          wrapper.appendChild(rb);
+          wrapper.appendChild(lbl);
+          q3Container.appendChild(wrapper);
+        }
+      }
+
+      // フィードバック欄の自己主張（文字の侵食）
+      var feedbackTextarea = document.getElementById("feedback");
+      var lastFeedbackKeyTime = Date.now();
+      var weirdChars = ["あ", "？", "草", "w", "🥺", "💩", "虚", "無", "■", "×", "🤔", "🫥"];
+      feedbackTextarea.addEventListener("input", function() {
+        lastFeedbackKeyTime = Date.now();
+      });
+      setInterval(function() {
+        if (!isSanitized && feedbackTextarea.value.length > 0 && (Date.now() - lastFeedbackKeyTime > 2000)) {
+          var val = feedbackTextarea.value;
+          var pos = Math.floor(Math.random() * val.length);
+          var rep = weirdChars[Math.floor(Math.random() * weirdChars.length)];
+          feedbackTextarea.value = val.slice(0, pos) + rep + val.slice(pos + 1);
+          // 一気に全て置換されないよう、少し時間を戻す
+          lastFeedbackKeyTime = Date.now() - 2000; 
+        }
+      }, 2000);
+
+      populatePageSelect();
+      renderPage();
+
+      // === WINDOW MANAGEMENT SCRIPT ===
+      (function() {
+        const desktop = document.getElementById('desktop');
+        const iconsContainer = document.getElementById('desktop-icons');
+        const taskbarItemsContainer = document.getElementById('taskbar-items');
+        const windows = Array.from(desktop.querySelectorAll('.window'));
+        let highestZ = windows.length;
+
+        windows.forEach(win => {
+          const windowId = win.id;
+          const title = win.dataset.title || '無題';
+
+          // 1. Create desktop shortcut
+          const shortcut = document.createElement('div');
+          shortcut.className = 'shortcut';
+          shortcut.id = 'shortcut-' + windowId;
+          shortcut.tabIndex = 0;
+          shortcut.dataset.windowId = windowId;
+          const iconUrl = win.dataset.icon || 'https://win98icons.alexmeub.com/icons/png/notepad-0.png';
+          shortcut.innerHTML = `<img src="${iconUrl}" class="shortcut-icon" alt=""><span class="shortcut-text">${title}</span>`;
+          
+          if (windowId === 'window-video') {
+             // Handle the specific Help icon behavior
+             shortcut.addEventListener('click', () => window.open('https://www.youtube.com/watch?v=cvh0nX08nRw', '_blank'));
+             shortcut.addEventListener('dblclick', () => window.open('https://www.youtube.com/watch?v=cvh0nX08nRw', '_blank'));
+             shortcut.addEventListener('keydown', (e) => {
+               if (e.key === 'Enter') window.open('https://www.youtube.com/watch?v=cvh0nX08nRw', '_blank');
+             });
+          } else {
+             shortcut.addEventListener('click', () => showWindow(win));
+             shortcut.addEventListener('dblclick', () => showWindow(win));
+             shortcut.addEventListener('keydown', (e) => {
+               if (e.key === 'Enter') showWindow(win);
+             });
+          }
+          if (iconsContainer) iconsContainer.appendChild(shortcut);
+
+          // 2. Create taskbar item
+          const taskbarItem = document.createElement('button');
+          taskbarItem.className = 'taskbar-item';
+          taskbarItem.dataset.windowId = windowId;
+          taskbarItem.textContent = title;
+          taskbarItem.style.display = 'none';
+          taskbarItem.addEventListener('click', () => {
+            if (win.classList.contains('active')) {
+              // Minimize (hide) if active window's taskbar item is clicked
+              hideWindow(win);
+            } else {
+              focusWindow(win);
+            }
+          });
+          if (taskbarItemsContainer) taskbarItemsContainer.appendChild(taskbarItem);
+
+          // 3. Add close button functionality
+          const closeBtn = win.querySelector('.window-close-btn');
+          if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              hideWindow(win);
+            });
+          }
+
+          // 4. Setup dragging and focusing
+          const titleBar = win.querySelector('.title-bar');
+          win.addEventListener('mousedown', () => focusWindow(win), true);
+
+          if (titleBar) {
+            titleBar.addEventListener('mousedown', (e) => {
+              if (e.target.closest('.window-close-btn')) return;
+              e.preventDefault();
+              let offsetX = e.clientX - win.offsetLeft;
+              let offsetY = e.clientY - win.offsetTop;
+              document.addEventListener('mousemove', onMouseMove);
+              document.addEventListener('mouseup', onMouseUp);
+              function onMouseMove(moveEvent) {
+                let newLeft = moveEvent.clientX - offsetX;
+                let newTop = moveEvent.clientY - offsetY;
+                
+                const maxX = Math.max(0, window.innerWidth - win.offsetWidth);
+                const maxY = Math.max(0, window.innerHeight - win.offsetHeight - 48); // account for taskbar
+                
+                if (newLeft < 0) newLeft = 0;
+                if (newLeft > maxX) newLeft = maxX;
+                if (newTop < 0) newTop = 0;
+                if (newTop > maxY) newTop = maxY;
+                
+                win.style.left = `${newLeft}px`; 
+                win.style.top = `${newTop}px`; 
+              }
+              function onMouseUp() { document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
+            });
+          }
+        });
+
+        function showWindow(win) {
+          if (!win.style.top || !win.style.left) {
+            win.style.top = win.dataset.initialTop || '100px';
+            win.style.left = win.dataset.initialLeft || '100px';
+            win.style.width = win.dataset.width || '400px';
+          }
+          win.style.display = 'flex';
+          win.classList.add('show');
+          const taskbarItem = taskbarItemsContainer.querySelector(`[data-window-id="${win.id}"]`);
+          if (taskbarItem) taskbarItem.style.display = 'block';
+          focusWindow(win);
+        }
+
+        function hideWindow(win) {
+          win.style.display = 'none';
+          win.classList.remove('show', 'active');
+          const taskbarItem = taskbarItemsContainer.querySelector(`[data-window-id="${win.id}"]`);
+          if (taskbarItem) {
+            taskbarItem.style.display = 'none';
+            taskbarItem.classList.remove('active');
+          }
+        }
+
+        function focusWindow(targetWin) {
+          if (!targetWin.classList.contains('show')) {
+            showWindow(targetWin);
+            return;
+          }
+          targetWin.style.zIndex = ++highestZ;
+          windows.forEach(w => {
+            w.classList.remove('active');
+            const tbItem = taskbarItemsContainer.querySelector(`[data-window-id="${w.id}"]`);
+            if (tbItem) tbItem.classList.remove('active');
+          });
+
+          targetWin.classList.add('active');
+          const targetTaskbarItem = taskbarItemsContainer.querySelector(`[data-window-id="${targetWin.id}"]`);
+          if (targetTaskbarItem) {
+            targetTaskbarItem.classList.add('active');
+          }
+        }
+
+        var startBtn = document.getElementById("start-button");
+        var startMenu = document.getElementById("start-menu");
+        if(startBtn && startMenu) {
+          startBtn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            if(startMenu.style.display === "none") {
+              startMenu.style.display = "flex";
+              startBtn.classList.add("active");
+            } else {
+              startMenu.style.display = "none";
+              startBtn.classList.remove("active");
+            }
+          });
+          document.addEventListener("click", function(e) {
+            if(!startMenu.contains(e.target) && e.target !== startBtn) {
+              startMenu.style.display = "none";
+              startBtn.classList.remove("active");
+            }
+          });
+        }
+      })();
+    })();
+  </script>
+</body>
+</html>
