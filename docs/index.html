@@ -16,11 +16,18 @@
 
     <main>
         <div class="entries-grid">
-            
+
+<div class="iframe-container">
+    <iframe src="entries/entry01/main.html" sandbox="allow-scripts"></iframe>
+</div>
+
             <div class="entry-card" data-entry-id="entry01">
-                <h2 class="entry-title">エントリーNo.01：[作品タイトルA]</h2>
+                <h2 class="entry-title">エントリーNo.01</h2>
                 <div class="iframe-container">
-                    <iframe src="entries/entry01/main.html" sandbox="allow-scripts"></iframe>
+                    <a href="entries/entry01/main.html" target="_blank" class="thumbnail-link">
+                        <div class="overlay-text">▶ 全画面で遊ぶ</div>
+                        <iframe src="entries/entry01/main.html" sandbox="allow-scripts"></iframe>
+                    </a>
                 </div>
                 <div class="vote-area">
                     <button class="vote-button" onclick="handleVote('entry01')">これが一番クソ！</button>
@@ -29,9 +36,12 @@
             </div>
 
             <div class="entry-card" data-entry-id="entry02">
-                <h2 class="entry-title">エントリーNo.02：[作品タイトルB]</h2>
+                <h2 class="entry-title">エントリーNo.02</h2>
                 <div class="iframe-container">
-                    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSc07xJh2XwxaFw3oB_6UHPmjeF-czWetekPekgG2eBcLY7WYQ/viewform"></iframe>
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc07xJh2XwxaFw3oB_6UHPmjeF-czWetekPekgG2eBcLY7WYQ/viewform" target="_blank" class="thumbnail-link">
+                        <div class="overlay-text">▶ 全画面で遊ぶ</div>
+                        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSc07xJh2XwxaFw3oB_6UHPmjeF-czWetekPekgG2eBcLY7WYQ/viewform" sandbox="allow-scripts"></iframe>
+                    </a>
                 </div>
                 <div class="vote-area">
                     <button class="vote-button" onclick="handleVote('entry02')">これが一番クソ！</button>
